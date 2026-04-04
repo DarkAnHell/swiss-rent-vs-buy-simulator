@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "swiss-rent-vs-buy-simulator",
+  "compatibility_date": "2026-04-04",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "web"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
