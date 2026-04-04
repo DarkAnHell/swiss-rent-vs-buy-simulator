@@ -382,6 +382,15 @@ export function renderSummary(agg) {
   `;
 }
 
+export function downloadChart(canvasId) {
+  const chart = charts[canvasId];
+  if (!chart) return;
+  const link = document.createElement("a");
+  link.download = canvasId + ".png";
+  link.href = chart.toBase64Image("image/png", 1);
+  link.click();
+}
+
 export function destroyAllCharts() {
   for (const [id, chart] of Object.entries(charts)) {
     chart.destroy();

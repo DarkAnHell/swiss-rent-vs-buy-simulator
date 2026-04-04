@@ -12,11 +12,21 @@
 <!-- ===== Header ===== -->
 <header class="site-header">
   <div class="header-left">
-    <h1>Swiss Rent vs Buy Simulator</h1>
-    <p>Deterministic grid sweep comparison</p>
+    <h1 data-i18n="title">Swiss Rent vs Buy Simulator</h1>
+    <p data-i18n="subtitle">Deterministic grid sweep comparison</p>
   </div>
   <div class="header-right">
-    <button class="config-toggle-btn" id="config-toggle-btn">Config</button>
+    <select class="lang-select" id="lang-select">
+      <option value="en">EN</option>
+      <option value="de">DE</option>
+      <option value="fr">FR</option>
+      <option value="it">IT</option>
+    </select>
+    <div class="theme-toggle" id="theme-toggle">
+      <button data-theme="light" class="active" data-i18n="theme_light">Light</button>
+      <button data-theme="dark" data-i18n="theme_dark">Dark</button>
+    </div>
+    <button class="config-toggle-btn" id="config-toggle-btn" data-i18n="btn_config">Config</button>
   </div>
 </header>
 
@@ -29,23 +39,44 @@
     <!-- Canton Selector -->
     <div class="param-row" style="margin-bottom:14px">
       <div class="param-label-row">
-        <span class="param-label">Canton Preset</span>
+        <span class="param-label" data-i18n="canton_preset">Canton Preset</span>
       </div>
       <div class="param-input-group">
         <select id="canton-select">
-          <option value="">Manual</option>
-          <option value="ZH">ZH</option>
-          <option value="AR">AR</option>
-          <option value="AI">AI</option>
-          <option value="TG">TG</option>
-          <option value="SG">SG</option>
+          <option value="" data-i18n="canton_manual">Manual</option>
+          <option value="ZH">ZH – Z\u00fcrich</option>
+          <option value="BE">BE – Bern</option>
+          <option value="LU">LU – Luzern</option>
+          <option value="UR">UR – Uri</option>
+          <option value="SZ">SZ – Schwyz</option>
+          <option value="OW">OW – Obwalden</option>
+          <option value="NW">NW – Nidwalden</option>
+          <option value="GL">GL – Glarus</option>
+          <option value="ZG">ZG – Zug</option>
+          <option value="FR">FR – Fribourg</option>
+          <option value="SO">SO – Solothurn</option>
+          <option value="BS">BS – Basel-Stadt</option>
+          <option value="BL">BL – Basel-Land</option>
+          <option value="SH">SH – Schaffhausen</option>
+          <option value="AR">AR – Appenzell A.Rh.</option>
+          <option value="AI">AI – Appenzell I.Rh.</option>
+          <option value="SG">SG – St. Gallen</option>
+          <option value="GR">GR – Graub\u00fcnden</option>
+          <option value="AG">AG – Aargau</option>
+          <option value="TG">TG – Thurgau</option>
+          <option value="TI">TI – Ticino</option>
+          <option value="VD">VD – Vaud</option>
+          <option value="VS">VS – Valais</option>
+          <option value="NE">NE – Neuch\u00e2tel</option>
+          <option value="GE">GE – Gen\u00e8ve</option>
+          <option value="JU">JU – Jura</option>
         </select>
       </div>
     </div>
 
     <!-- 1. Horizon (open by default) -->
     <details class="config-group" open>
-      <summary>Horizon</summary>
+      <summary data-i18n="group_horizon">Horizon</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="years">
@@ -113,7 +144,7 @@
 
     <!-- 2. Starting Assets & Investing -->
     <details class="config-group">
-      <summary>Starting Assets &amp; Investing</summary>
+      <summary data-i18n="group_assets">Starting Assets &amp; Investing</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="liquid_assets">
@@ -201,7 +232,7 @@
 
     <!-- 3. Household Cash Flow -->
     <details class="config-group">
-      <summary>Household Cash Flow</summary>
+      <summary data-i18n="group_cashflow">Household Cash Flow</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="income_working_annual">
@@ -316,7 +347,7 @@
 
     <!-- 4. Rent Costs -->
     <details class="config-group">
-      <summary>Rent Costs</summary>
+      <summary data-i18n="group_rent">Rent Costs</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="rent_monthly">
@@ -424,7 +455,7 @@
 
     <!-- 5. Macro Drivers -->
     <details class="config-group">
-      <summary>Macro Drivers</summary>
+      <summary data-i18n="group_macro">Macro Drivers</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="market_return">
@@ -572,7 +603,7 @@
 
     <!-- 6. Property & Owner Costs -->
     <details class="config-group">
-      <summary>Property &amp; Owner Costs</summary>
+      <summary data-i18n="group_property">Property &amp; Owner Costs</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="purchase_price">
@@ -740,7 +771,7 @@
 
     <!-- 7. Mortgage -->
     <details class="config-group">
-      <summary>Mortgage</summary>
+      <summary data-i18n="group_mortgage">Mortgage</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="mortgage_fixed_years">
@@ -968,7 +999,7 @@
 
     <!-- 8. Taxes -->
     <details class="config-group">
-      <summary>Taxes</summary>
+      <summary data-i18n="group_taxes">Taxes</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="imputed_rent_pct">
@@ -1056,7 +1087,7 @@
 
     <!-- 9. 2nd Pillar -->
     <details class="config-group">
-      <summary>2nd Pillar</summary>
+      <summary data-i18n="group_pillar2">2nd Pillar</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="pillar2_start">
@@ -1171,7 +1202,7 @@
 
     <!-- 10. Transaction Costs -->
     <details class="config-group">
-      <summary>Transaction Costs</summary>
+      <summary data-i18n="group_transaction">Transaction Costs</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="buying_cost_pct">
@@ -1339,7 +1370,7 @@
 
     <!-- 11. Equity -->
     <details class="config-group">
-      <summary>Equity</summary>
+      <summary data-i18n="group_equity">Equity</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="cash_downpayment">
@@ -1407,7 +1438,7 @@
 
     <!-- 12. Landlord Mode -->
     <details class="config-group">
-      <summary>Landlord Mode</summary>
+      <summary data-i18n="group_landlord">Landlord Mode</summary>
       <div class="config-group-body">
 
         <div class="param-row" data-param="rent_out_monthly_multiplier">
@@ -1600,12 +1631,12 @@
 
     <!-- Run Controls -->
     <div class="run-controls">
-      <button class="btn-run" id="btn-run">Run Simulation</button>
+      <button class="btn-run" id="btn-run" data-i18n="btn_run">Run Simulation</button>
       <div class="progress-wrapper">
         <div class="progress-bar-container">
           <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
-        <span class="progress-label" id="progress-label">Ready</span>
+        <span class="progress-label" id="progress-label" data-i18n="status_ready">Ready</span>
       </div>
     </div>
 
@@ -1613,61 +1644,85 @@
     <div class="strategy-legend">
       <div class="legend-item">
         <span class="legend-swatch" style="background:#1F77B4"></span>
-        <span>Rent</span>
+        <span data-i18n="strat_rent">Rent</span>
       </div>
       <div class="legend-item">
         <span class="legend-swatch" style="background:#FF7F0E"></span>
-        <span>Buy Owner</span>
+        <span data-i18n="strat_buy_owner">Buy Owner</span>
       </div>
       <div class="legend-item">
         <span class="legend-swatch" style="background:#2CA02C"></span>
-        <span>Buy &rarr; Rent-out</span>
+        <span data-i18n="strat_buy_then_rent">Buy &rarr; Rent-out</span>
       </div>
       <div class="legend-item">
         <span class="legend-swatch" style="background:#9467BD"></span>
-        <span>Buy &amp; Rent-out</span>
+        <span data-i18n="strat_buy_and_rent">Buy &amp; Rent-out</span>
       </div>
     </div>
 
     <!-- Chart Grid -->
     <div class="chart-grid">
       <div class="chart-card">
-        <h3>Net Worth Over Time</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_networth">Net Worth Over Time</h3>
+          <button class="btn-download" data-chart="chart-networth" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-networth"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Annual Cash Outflow</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_cashout">Annual Cash Outflow</h3>
+          <button class="btn-download" data-chart="chart-cashout" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-cashout"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Net Cash Flow</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_cashflow">Net Cash Flow</h3>
+          <button class="btn-download" data-chart="chart-cashflow" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-cashflow"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Cash Liquidity</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_liquidity">Cash Liquidity</h3>
+          <button class="btn-download" data-chart="chart-liquidity" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-liquidity"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Buy vs Rent Delta</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_delta">Buy vs Rent Delta</h3>
+          <button class="btn-download" data-chart="chart-delta" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-delta"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Annual Gap Change</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_gap_change">Annual Gap Change</h3>
+          <button class="btn-download" data-chart="chart-cumulative" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-cumulative"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Buy Win Share</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_winshare">Buy Win Share</h3>
+          <button class="btn-download" data-chart="chart-winshare" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-winshare"></canvas>
       </div>
       <div class="chart-card">
-        <h3>Delta Histogram</h3>
+        <div class="chart-header">
+          <h3 data-i18n="chart_histogram">Delta Histogram</h3>
+          <button class="btn-download" data-chart="chart-histogram" data-i18n="btn_download">PNG</button>
+        </div>
         <canvas id="chart-histogram"></canvas>
       </div>
     </div>
 
     <!-- Summary Panel -->
     <div class="summary-panel" id="summary-panel">
-      <h2>Summary</h2>
+      <h2 data-i18n="summary">Summary</h2>
       <div class="summary-stats" id="summary-stats"></div>
     </div>
 

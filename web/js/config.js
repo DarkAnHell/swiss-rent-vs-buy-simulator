@@ -40,6 +40,110 @@ export const CANTON_PROFILES = {
     cap_gains_schedule_key: "ZH",
     imputed_rent_pct: 0.65,
   },
+  // Bern
+  BE: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.018,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Lucerne
+  LU: {
+    property_tax_rate: 0.00077,
+    property_transfer_tax_rate: 0.015,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Uri
+  UR: {
+    property_tax_rate: 0.0002,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Schwyz
+  SZ: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Obwalden
+  OW: {
+    property_tax_rate: 0.0001,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Nidwalden
+  NW: {
+    property_tax_rate: 0.0001,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.60,
+  },
+  // Glarus
+  GL: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Zug
+  ZG: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.0,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.60,
+  },
+  // Fribourg
+  FR: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.015,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Solothurn
+  SO: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.022,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Basel-Stadt
+  BS: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.03,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Basel-Landschaft
+  BL: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.025,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Schaffhausen
+  SH: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.0,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
   // Appenzell Ausserrhoden
   AR: {
     property_tax_rate: 0.0,
@@ -54,6 +158,30 @@ export const CANTON_PROFILES = {
     cap_gains_tax_rate_base: 0.40,
     cap_gains_schedule_key: "AI",
   },
+  // St. Gallen
+  SG: {
+    property_tax_rate: 0.00008,
+    property_transfer_tax_rate: 0.01,
+    cap_gains_tax_rate_base: 0.335,
+    cap_gains_schedule_key: "SG",
+    imputed_rent_pct: 0.70,
+  },
+  // Graubunden
+  GR: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Aargau
+  AG: {
+    property_tax_rate: 0.0,
+    property_transfer_tax_rate: 0.0,
+    cap_gains_tax_rate_base: 0.40,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
   // Thurgau
   TG: {
     property_tax_rate: 0.00005,
@@ -62,12 +190,52 @@ export const CANTON_PROFILES = {
     cap_gains_schedule_key: "TG",
     imputed_rent_pct: 0.60,
   },
-  // St. Gallen
-  SG: {
-    property_tax_rate: 0.00008,
-    property_transfer_tax_rate: 0.01,
-    cap_gains_tax_rate_base: 0.335,
-    cap_gains_schedule_key: "SG",
+  // Ticino
+  TI: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.0,
+    cap_gains_tax_rate_base: 0.40,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Vaud
+  VD: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.022,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Valais
+  VS: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.015,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Neuchatel
+  NE: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.022,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Geneva
+  GE: {
+    property_tax_rate: 0.001,
+    property_transfer_tax_rate: 0.03,
+    cap_gains_tax_rate_base: 0.50,
+    cap_gains_schedule_key: "",
+    imputed_rent_pct: 0.70,
+  },
+  // Jura
+  JU: {
+    property_tax_rate: 0.0015,
+    property_transfer_tax_rate: 0.02,
+    cap_gains_tax_rate_base: 0.30,
+    cap_gains_schedule_key: "",
     imputed_rent_pct: 0.70,
   },
 };

@@ -5,7 +5,8 @@
 import { DEFAULT_CONFIG, CANTON_PROFILES, lin, log, choices, expandSpec } from "./config.js";
 import { runSweep, totalCombinations } from "./sweep.js";
 import { splitConfig, applyCantonProfile } from "./config.js";
-import { renderAllCharts, renderSummary, destroyAllCharts } from "./charts.js";
+import { renderAllCharts, renderSummary, destroyAllCharts, downloadChart } from "./charts.js";
+import { t, setLang, applyTranslations } from "./i18n.js";
 
 // ---- Tooltip copy ----
 
@@ -122,6 +123,8 @@ const progressLabel = document.getElementById("progress-label");
 const cantonSelect = document.getElementById("canton-select");
 const configToggle = document.getElementById("config-toggle-btn");
 const configPanel = document.getElementById("config-panel");
+const themeToggle = document.getElementById("theme-toggle");
+const langSelect = document.getElementById("lang-select");
 
 // ---- Config UI <-> Data ----
 
@@ -389,9 +392,9 @@ async function runSimulation() {
   if (running) return;
   running = true;
   btnRun.disabled = true;
-  btnRun.textContent = "Running...";
+  btnRun.textContent = t("btn_running");
   progressFill.style.width = "0%";
-  progressLabel.textContent = "Starting...";
+  progressLabel.textContent = t("status_starting");
 
   try {
     const config = readConfigFromUI();
@@ -406,7 +409,7 @@ async function runSimulation() {
     );
 
     progressFill.style.width = "100%";
-    progressLabel.textContent = `Done — ${total.toLocaleString()} scenarios`;
+    progressLabel.textContent = `${t("status_done")} — ${total.toLocaleString()} ${t("scenarios")}`;
 
     const T = Math.round(base.years || 60);
     const events = computeEventMarkers(base, sweep, T);
@@ -415,12 +418,12 @@ async function runSimulation() {
     renderAllCharts(agg, events);
     renderSummary(agg);
   } catch (err) {
-    progressLabel.textContent = `Error: ${err.message}`;
+    progressLabel.textContent = `${t("Error")}: ${err.message}`;
     console.error(err);
   } finally {
     running = false;
     btnRun.disabled = false;
-    btnRun.textContent = "Run Simulation";
+    btnRun.textContent = t("btn_run");
   }
 }
 
@@ -450,9 +453,58 @@ function injectTooltips() {
 
 // ---- Init ----
 
+// ---- Theme ----
+
+function initTheme() {
+  const saved = localStorage.getItem("theme") || "light";
+  applyTheme(saved);
+
+  themeToggle?.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyTheme(btn.dataset.theme);
+    });
+  });
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("theme", theme);
+  themeToggle?.querySelectorAll("button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.theme === theme);
+  });
+}
+
+// ---- Language ----
+
+function initLang() {
+  const saved = localStorage.getItem("lang") || "en";
+  langSelect.value = saved;
+  setLang(saved);
+
+  langSelect?.addEventListener("change", () => {
+    localStorage.setItem("lang", langSelect.value);
+    setLang(langSelect.value);
+  });
+}
+
+// ---- Download buttons ----
+
+function wireDownloadButtons() {
+  document.querySelectorAll(".btn-download").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const chartId = btn.dataset.chart;
+      if (chartId) downloadChart(chartId);
+    });
+  });
+}
+
+// ---- Init ----
+
 function init() {
   populateUI(DEFAULT_CONFIG);
   injectTooltips();
+  initTheme();
+  initLang();
 
   if (cantonSelect) {
     cantonSelect.value = currentCanton;
@@ -463,6 +515,7 @@ function init() {
   }
 
   wireModeToggles();
+  wireDownloadButtons();
 
   btnRun?.addEventListener("click", runSimulation);
 

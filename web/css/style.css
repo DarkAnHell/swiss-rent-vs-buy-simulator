@@ -39,6 +39,48 @@
   background: var(--color-bg);
 }
 
+/* ===== Dark Mode ===== */
+[data-theme="dark"] {
+  --color-bg: #1a1b1e;
+  --color-surface: #25262b;
+  --color-header: #141517;
+  --color-header-text: #e0e0e0;
+  --color-text: #c9cdd1;
+  --color-text-muted: #909399;
+  --color-border: #3e4045;
+  --color-accent: #4c8bf5;
+  --color-accent-hover: #3a7ae8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .config-group summary {
+  background: #2c2d32;
+}
+
+[data-theme="dark"] .config-group summary:hover {
+  background: #34353a;
+}
+
+[data-theme="dark"] .param-input-group input,
+[data-theme="dark"] .param-input-group select {
+  background: #1e1f23;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .stat-card {
+  background: #2c2d32;
+}
+
+[data-theme="dark"] .mode-toggle button:hover:not(.active) {
+  background: #3e4045;
+}
+
+[data-theme="dark"] .param-help::after {
+  background: #0d0e10;
+}
+
 /* ===== Header ===== */
 .site-header {
   position: fixed;
@@ -579,4 +621,81 @@
   .summary-stats {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===== Theme Toggle ===== */
+.theme-toggle {
+  display: inline-flex;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.theme-toggle button {
+  font-size: 12px;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-header-text);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.theme-toggle button.active {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.theme-toggle button:hover:not(.active) {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ===== Language Selector ===== */
+.lang-select {
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-header-text);
+  cursor: pointer;
+}
+
+.lang-select option {
+  background: var(--color-header);
+  color: var(--color-header-text);
+}
+
+/* ===== Chart Download Button ===== */
+.chart-card {
+  position: relative;
+}
+
+.chart-card .chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.chart-card .chart-header h3 {
+  margin-bottom: 0;
+}
+
+.btn-download {
+  padding: 3px 8px;
+  font-size: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.btn-download:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
 }
