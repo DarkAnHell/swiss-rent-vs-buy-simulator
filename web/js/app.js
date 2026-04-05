@@ -83,6 +83,15 @@ const TOOLTIPS = {
   pillar2_annuitize_at_retirement: "If checked, Pillar 2 balance converts to a monthly annuity at retirement instead of staying as liquid capital.",
   pillar2_conversion_rate:         "Annual pension as % of Pillar 2 capital at retirement. BVG minimum rate: 6.8% (0.068).",
 
+  // Pillar 3a
+  pillar3a_start:                   "Your current Pillar 3a (tied pension) account balance. CHF. Check your latest bank/insurance statement.",
+  pillar3a_contrib:                 "Annual Pillar 3a contribution. CHF/year. 2025 max for employees with P2: CHF 7,258; without P2: CHF 36,288.",
+  pillar3a_rate:                    "Annual interest/return rate on your Pillar 3a account. Decimal. Bank 3a: ~0.5–1%; fund-based 3a: higher but volatile.",
+  pillar3a_used:                    "Pillar 3a capital withdrawn for the home down payment. CHF. Reduces your 3a balance. Must be repaid if property is sold.",
+  pillar3a_withdrawal_tax_rate:     "Tax rate on Pillar 3a lump-sum withdrawal. Decimal. Similar to P2 withdrawal tax, typically 5–10%. Varies by canton.",
+  pillar3a_tax_deduction_rate:      "Effective tax savings rate from P3a contribution deductions. Decimal. E.g. 0.25 means each CHF contributed saves 0.25 CHF in taxes. Set to 0 to ignore.",
+  stop_pillar3a_contrib_at_retirement: "If checked, Pillar 3a contributions stop at retirement age. 3a accounts must be withdrawn by age 70 (men) / 69 (women).",
+
   // Transaction Costs
   buying_cost_pct:           "Buying transaction costs as % of purchase price (notary, agent, registration). Decimal. Typical CH: 1–3%.",
   buying_cost_fixed:         "Fixed buying costs added on top of the percentage costs. CHF.",

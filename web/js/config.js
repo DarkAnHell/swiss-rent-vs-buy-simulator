@@ -331,6 +331,15 @@ export const DEFAULT_CONFIG = {
   pillar2_annuitize_at_retirement: true,
   pillar2_conversion_rate: 0.068,
 
+  // 3rd pillar (3a)
+  pillar3a_start: 0.0,
+  pillar3a_contrib: 7258.0,
+  pillar3a_rate: 0.01,
+  pillar3a_used: 0,
+  pillar3a_withdrawal_tax_rate: 0.08,
+  pillar3a_tax_deduction_rate: 0.0,
+  stop_pillar3a_contrib_at_retirement: true,
+
   // transaction costs
   buying_cost_pct: 0.01,
   buying_cost_fixed: 5000.0,
@@ -342,7 +351,7 @@ export const DEFAULT_CONFIG = {
   capex_first_year: 15,
 
   // equity levers
-  cash_downpayment: 0,
+  cash_downpayment: 200_000,
   pillar2_used: 0,
   family_help: 0,
 };

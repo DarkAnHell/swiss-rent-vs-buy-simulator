@@ -25,7 +25,7 @@ export const SWISS_MIN_NON_AMORTIZING_LTV = 0.65;
  * @returns {MortgagePlan}
  */
 export function buildMortgagePlan(p) {
-  const equity_total = p.cash_downpayment + p.pillar2_used + p.family_help;
+  const equity_total = p.cash_downpayment + p.pillar2_used + (p.pillar3a_used || 0) + p.family_help;
   const mortgage0 = Math.max(0.0, p.purchase_price - equity_total);
   const non_amortizing_balance = Math.min(mortgage0, p.target_ltv * p.purchase_price);
   const amortizing_balance0 = Math.max(0.0, mortgage0 - non_amortizing_balance);
@@ -333,14 +333,16 @@ export function capGainsMultiplier(scheduleKey, years, gain) {
 // Sale proceeds
 // ---------------------------------------------------------------------------
 
-export function saleProceedsAtYear(p, year, homeValue, mortgageEnd, capexCum, p2Outstanding, buyingCosts, p2WithdrawalTax) {
+export function saleProceedsAtYear(p, year, homeValue, mortgageEnd, capexCum, p2Outstanding, buyingCosts, p2WithdrawalTax, p3aOutstanding, p3aWithdrawalTax) {
   const selling_costs_base = homeValue * p.selling_cost_pct + p.selling_cost_fixed;
   const gain = Math.max(0.0, homeValue - p.purchase_price - buyingCosts - selling_costs_base - capexCum);
   const cg_rate = p.cap_gains_tax_rate_base * capGainsMultiplier(p.cap_gains_schedule_key, year, gain);
   const cg_tax = gain > 0 ? (gain * cg_rate + p.cap_gains_tax) : 0.0;
   const sell_costs = selling_costs_base + cg_tax;
   const p2_tax_refund = p2Outstanding > 0 ? p2WithdrawalTax : 0.0;
-  return homeValue - sell_costs - mortgageEnd - p2Outstanding + p2_tax_refund;
+  const p3a_outstanding = p3aOutstanding || 0;
+  const p3a_tax_refund = p3a_outstanding > 0 ? (p3aWithdrawalTax || 0) : 0.0;
+  return homeValue - sell_costs - mortgageEnd - p2Outstanding + p2_tax_refund - p3a_outstanding + p3a_tax_refund;
 }
 
 // ---------------------------------------------------------------------------
@@ -369,6 +371,13 @@ export function clampParams(p) {
   c.second_home_rent_deposit_months = Math.min(3.0, Math.max(0.0, c.second_home_rent_deposit_months));
   c.mortgage_refix_years = Math.max(0, Math.round(c.mortgage_refix_years)) | 0;
   c.pillar2_conversion_rate = Math.min(1.0, Math.max(0.0, c.pillar2_conversion_rate));
+  c.pillar3a_start = Math.max(0.0, c.pillar3a_start || 0);
+  c.pillar3a_contrib = Math.max(0.0, c.pillar3a_contrib || 0);
+  c.pillar3a_rate = Math.max(0.0, c.pillar3a_rate || 0);
+  c.pillar3a_used = Math.max(0.0, c.pillar3a_used || 0);
+  c.pillar3a_withdrawal_tax_rate = Math.min(1.0, Math.max(0.0, c.pillar3a_withdrawal_tax_rate || 0));
+  c.pillar3a_tax_deduction_rate = Math.min(1.0, Math.max(0.0, c.pillar3a_tax_deduction_rate || 0));
+  c.stop_pillar3a_contrib_at_retirement = c.stop_pillar3a_contrib_at_retirement !== false;
   c.property_tax_assessment_pct = Math.min(1.0, Math.max(0.0, c.property_tax_assessment_pct));
   c.capex_interval_years = Math.max(0, Math.round(c.capex_interval_years)) | 0;
   c.capex_first_year = Math.max(0, Math.round(c.capex_first_year)) | 0;
@@ -395,6 +404,14 @@ export function validateParams(p) {
     throw new Error(
       `Invalid 2nd pillar: pillar2_used (${p.pillar2_used.toFixed(2)}) ` +
       `exceeds pillar2_start (${p.pillar2_start.toFixed(2)}).`
+    );
+  }
+  const p3a_used = p.pillar3a_used || 0;
+  const p3a_start = p.pillar3a_start || 0;
+  if (p3a_used > p3a_start) {
+    throw new Error(
+      `Invalid 3rd pillar: pillar3a_used (${p3a_used.toFixed(2)}) ` +
+      `exceeds pillar3a_start (${p3a_start.toFixed(2)}).`
     );
   }
 }
@@ -569,7 +586,8 @@ export function simulate(p) {
   // Upfront costs
   const buying_costs = p.purchase_price * (p.buying_cost_pct + p.property_transfer_tax_rate) + p.buying_cost_fixed;
   const pillar2_withdrawal_tax = p.pillar2_used * p.pillar2_withdrawal_tax_rate;
-  const upfront_from_liquid = p.cash_downpayment + buying_costs + p.upfront_mortgage_fees + p.moving_cost + pillar2_withdrawal_tax;
+  const pillar3a_withdrawal_tax = p.pillar3a_used * p.pillar3a_withdrawal_tax_rate;
+  const upfront_from_liquid = p.cash_downpayment + buying_costs + p.upfront_mortgage_fees + p.moving_cost + pillar2_withdrawal_tax + pillar3a_withdrawal_tax;
 
   // Rent-side upfront
   const rent_deposit = p.rent_monthly * p.rent_deposit_months;
@@ -708,6 +726,51 @@ export function simulate(p) {
     }
   }
 
+  // 3rd pillar (3a) — lump-sum withdrawal at retirement
+  const p3a_rent = new Float64Array(N);
+  const p3a_buy = new Float64Array(N);
+  p3a_rent[0] = p.pillar3a_start;
+  p3a_buy[0] = Math.max(0.0, p.pillar3a_start - p.pillar3a_used);
+  const p3r = 1.0 + p.pillar3a_rate;
+  // Annual tax deduction benefit from P3a contributions (added to investment account)
+  const p3a_tax_benefit = p.pillar3a_contrib * p.pillar3a_tax_deduction_rate;
+
+  for (let t = 1; t < N; t++) {
+    let contrib3a = p.pillar3a_contrib;
+    if (p.stop_pillar3a_contrib_at_retirement && t >= retirement_year) {
+      contrib3a = 0.0;
+    }
+
+    // At retirement: withdraw lump sum (mandatory for 3a), add to investment after tax
+    if (t === retirement_year) {
+      const p3a_rent_bal = p3a_rent[t - 1] * p3r + contrib3a;
+      const p3a_buy_bal = p3a_buy[t - 1] * p3r + contrib3a;
+      const p3a_rent_tax = p3a_rent_bal * p.pillar3a_withdrawal_tax_rate;
+      const p3a_buy_tax = p3a_buy_bal * p.pillar3a_withdrawal_tax_rate;
+      inv_rent[t] += p3a_rent_bal - p3a_rent_tax;
+      inv_buy[t] += p3a_buy_bal - p3a_buy_tax;
+      inv_buy_let_trigger[t] += p3a_buy_bal - p3a_buy_tax;
+      inv_buy_let_immediate[t] += p3a_buy_bal - p3a_buy_tax;
+      p3a_rent[t] = 0.0;
+      p3a_buy[t] = 0.0;
+    } else if (t < retirement_year) {
+      p3a_rent[t] = p3a_rent[t - 1] * p3r + contrib3a;
+      p3a_buy[t] = p3a_buy[t - 1] * p3r + contrib3a;
+      // Tax deduction benefit on contributions
+      if (p3a_tax_benefit > 0 && contrib3a > 0) {
+        const benefit = contrib3a * p.pillar3a_tax_deduction_rate;
+        inv_rent[t] += benefit;
+        inv_buy[t] += benefit;
+        inv_buy_let_trigger[t] += benefit;
+        inv_buy_let_immediate[t] += benefit;
+      }
+    } else {
+      // Post-retirement: already withdrawn
+      p3a_rent[t] = 0.0;
+      p3a_buy[t] = 0.0;
+    }
+  }
+
   // Rent deposit balance
   const rent_deposit_bal = new Float64Array(N);
   rent_deposit_bal[0] = rent_deposit;
@@ -721,12 +784,14 @@ export function simulate(p) {
   for (let t = 0; t < N; t++) {
     sale_proceeds[t] = saleProceedsAtYear(
       p, t, home_value[t], mortgage_bal[t], capex_cum[t],
-      p.pillar2_used, buying_costs, pillar2_withdrawal_tax
+      p.pillar2_used, buying_costs, pillar2_withdrawal_tax,
+      p.pillar3a_used, pillar3a_withdrawal_tax
     );
   }
 
-  // Pillar 2 repayment on sale
+  // Pillar 2 & 3a repayment on sale
   const p2_repayment = p.pillar2_used;
+  const p3a_repayment = p.pillar3a_used;
 
   // Net worths
   const networth_rent = new Float64Array(N);
@@ -734,10 +799,10 @@ export function simulate(p) {
   const networth_buy_let_trigger = new Float64Array(N);
   const networth_buy_let_immediate = new Float64Array(N);
   for (let t = 0; t < N; t++) {
-    networth_rent[t] = inv_rent[t] + p2_rent[t] + rent_deposit_bal[t];
-    networth_buy[t] = inv_buy[t] + (p2_buy[t] + p2_repayment) + sale_proceeds[t];
-    networth_buy_let_trigger[t] = inv_buy_let_trigger[t] + (p2_buy[t] + p2_repayment) + sale_proceeds[t] + second_home_deposit_trigger_bal[t];
-    networth_buy_let_immediate[t] = inv_buy_let_immediate[t] + (p2_buy[t] + p2_repayment) + sale_proceeds[t] + second_home_deposit_immediate_bal[t];
+    networth_rent[t] = inv_rent[t] + p2_rent[t] + p3a_rent[t] + rent_deposit_bal[t];
+    networth_buy[t] = inv_buy[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds[t];
+    networth_buy_let_trigger[t] = inv_buy_let_trigger[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds[t] + second_home_deposit_trigger_bal[t];
+    networth_buy_let_immediate[t] = inv_buy_let_immediate[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds[t] + second_home_deposit_immediate_bal[t];
   }
 
   // Build years array
@@ -824,6 +889,7 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
   const mortgage_plan = buildMortgagePlan(p);
   const buying_costs = p.purchase_price * (p.buying_cost_pct + p.property_transfer_tax_rate) + p.buying_cost_fixed;
   const pillar2_withdrawal_tax = p.pillar2_used * p.pillar2_withdrawal_tax_rate;
+  const pillar3a_withdrawal_tax = p.pillar3a_used * p.pillar3a_withdrawal_tax_rate;
   const sh_rent_base = secondHomeMonthlyRentBase(p);
 
   function inflFactor(year) {
@@ -957,6 +1023,8 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
   let buy_liquid = tr.invest_buy[T];
   let buy_p2 = tr.p2_buy_end;
   let buy_p2_outstanding = p.pillar2_used;
+  let buy_p3a = 0.0; // P3a is fully withdrawn by retirement (within T)
+  let buy_p3a_outstanding = p.pillar3a_used;
   let buy_has_home = true;
   let buy_rent_deposit = 0.0;
   let buy_mortgage_end_val = tr.mortgage_balance_end;
@@ -964,6 +1032,8 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
   let trigger_liquid = tr.invest_buy_let_trigger[T];
   let trigger_p2 = tr.p2_buy_end;
   let trigger_p2_outstanding = p.pillar2_used;
+  let trigger_p3a = 0.0;
+  let trigger_p3a_outstanding = p.pillar3a_used;
   let trigger_mortgage_end_val = tr.mortgage_balance_end;
   let trigger_switched_to_let = buy_let_trigger_switch_year >= 0;
   let trigger_second_home_deposit = tr.second_home_deposit_trigger_end;
@@ -972,6 +1042,8 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
   let immediate_liquid = tr.invest_buy_let_immediate[T];
   let immediate_p2 = tr.p2_buy_end;
   let immediate_p2_outstanding = p.pillar2_used;
+  let immediate_p3a = 0.0;
+  let immediate_p3a_outstanding = p.pillar3a_used;
   let immediate_mortgage_end_val = tr.mortgage_balance_end;
   let immediate_second_home_deposit = tr.second_home_deposit_immediate_end;
   let immediate_home_value = home_values[T];
@@ -1000,7 +1072,7 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
         rent_p2 = rent_p2 * pr + p2_contrib;
       }
       rent_deposit_bal = rent_deposit_bal * dr;
-      let rent_total_nw = rent_liquid + rent_p2 + rent_deposit_bal;
+      let rent_total_nw = rent_liquid + rent_p2 + rent_deposit_bal; // P3a already withdrawn to liquid by retirement
       if (rent_total_nw <= 0.0) {
         rent_total_nw = 0.0;
         rent_alive = false;
@@ -1021,10 +1093,13 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
           buy_capex_cum = os.capex_cum;
           const sale_cash = saleProceedsAtYear(
             p, year, os.home_value, os.mortgage_end, buy_capex_cum,
-            buy_p2_outstanding, buying_costs, pillar2_withdrawal_tax
+            buy_p2_outstanding, buying_costs, pillar2_withdrawal_tax,
+            buy_p3a_outstanding, pillar3a_withdrawal_tax
           );
           buy_p2 += buy_p2_outstanding;
           buy_p2_outstanding = 0.0;
+          buy_p3a += buy_p3a_outstanding;
+          buy_p3a_outstanding = 0.0;
           buy_has_home = false;
           buy_sale_year = year;
           buy_rent_deposit = p.rent_deposit_months * p.rent_monthly * Math.pow(1.0 + p.rent_growth, year);
@@ -1036,7 +1111,7 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
             buy_p2 = buy_p2 * pr + p2_contrib;
           }
           buy_rent_deposit = buy_rent_deposit * dr;
-          buy_total_nw = buy_liquid + buy_p2 + buy_rent_deposit;
+          buy_total_nw = buy_liquid + buy_p2 + buy_p3a + buy_rent_deposit;
         } else {
           buy_liquid = projected_owner_liquid;
           if (!(p.pillar2_annuitize_at_retirement && year >= retirement_year)) {
@@ -1046,9 +1121,10 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
           buy_capex_cum = os.capex_cum;
           const sale_cash_if_sell = saleProceedsAtYear(
             p, year, os.home_value, os.mortgage_end, buy_capex_cum,
-            buy_p2_outstanding, buying_costs, pillar2_withdrawal_tax
+            buy_p2_outstanding, buying_costs, pillar2_withdrawal_tax,
+            buy_p3a_outstanding, pillar3a_withdrawal_tax
           );
-          buy_total_nw = buy_liquid + buy_p2 + buy_p2_outstanding + sale_cash_if_sell;
+          buy_total_nw = buy_liquid + buy_p2 + buy_p2_outstanding + buy_p3a + buy_p3a_outstanding + sale_cash_if_sell;
         }
       } else {
         const rent_cash_out = rentHousingOutForYear(year) + non_housing + retire_oneoff;
@@ -1058,7 +1134,7 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
           buy_p2 = buy_p2 * pr + p2_contrib;
         }
         buy_rent_deposit = buy_rent_deposit * dr;
-        buy_total_nw = buy_liquid + buy_p2 + buy_rent_deposit;
+        buy_total_nw = buy_liquid + buy_p2 + buy_p3a + buy_rent_deposit;
       }
 
       if (buy_total_nw <= 0.0) {
@@ -1106,10 +1182,11 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
       }
       const trigger_sale_cash_if_sell = saleProceedsAtYear(
         p, year, trigger_home_value, trigger_mortgage_end_val, trigger_capex_cum,
-        trigger_p2_outstanding, buying_costs, pillar2_withdrawal_tax
+        trigger_p2_outstanding, buying_costs, pillar2_withdrawal_tax,
+        trigger_p3a_outstanding, pillar3a_withdrawal_tax
       );
       let trigger_total_nw = (
-        trigger_liquid + trigger_p2 + trigger_p2_outstanding + trigger_sale_cash_if_sell + trigger_second_home_deposit
+        trigger_liquid + trigger_p2 + trigger_p2_outstanding + trigger_p3a + trigger_p3a_outstanding + trigger_sale_cash_if_sell + trigger_second_home_deposit
       );
       if (trigger_total_nw <= 0.0) {
         trigger_total_nw = 0.0;
@@ -1134,10 +1211,11 @@ export function projectUntilDepletion(p, tr, maxProjectionAge = 110) {
       }
       const immediate_sale_cash_if_sell = saleProceedsAtYear(
         p, year, immediate_home_value, immediate_mortgage_end_val, immediate_capex_cum,
-        immediate_p2_outstanding, buying_costs, pillar2_withdrawal_tax
+        immediate_p2_outstanding, buying_costs, pillar2_withdrawal_tax,
+        immediate_p3a_outstanding, pillar3a_withdrawal_tax
       );
       let immediate_total_nw = (
-        immediate_liquid + immediate_p2 + immediate_p2_outstanding
+        immediate_liquid + immediate_p2 + immediate_p2_outstanding + immediate_p3a + immediate_p3a_outstanding
         + immediate_sale_cash_if_sell + immediate_second_home_deposit
       );
       if (immediate_total_nw <= 0.0) {

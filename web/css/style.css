@@ -64,9 +64,13 @@
 
 [data-theme="dark"] .param-input-group input,
 [data-theme="dark"] .param-input-group select {
-  background: #1e1f23;
+  background: #2c2d32;
   color: var(--color-text);
   border-color: var(--color-border);
+}
+
+[data-theme="dark"] .progress-bar-container {
+  background: #3e4045;
 }
 
 [data-theme="dark"] .stat-card {

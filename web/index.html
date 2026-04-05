@@ -1200,7 +1200,142 @@
       </div>
     </details>
 
-    <!-- 10. Transaction Costs -->
+    <!-- 10. 3rd Pillar (3a) -->
+    <details class="config-group">
+      <summary data-i18n="group_pillar3a">3rd Pillar (3a)</summary>
+      <div class="config-group-body">
+
+        <div class="param-row" data-param="pillar3a_start">
+          <div class="param-label-row">
+            <span class="param-label">Pillar 3a Starting Balance</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
+        <div class="param-row" data-param="pillar3a_contrib">
+          <div class="param-label-row">
+            <span class="param-label">Pillar 3a Annual Contribution</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
+        <div class="param-row" data-param="pillar3a_rate">
+          <div class="param-label-row">
+            <span class="param-label">Pillar 3a Interest Rate</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
+        <div class="param-row" data-param="pillar3a_used">
+          <div class="param-label-row">
+            <span class="param-label">Pillar 3a Used for Down Payment</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
+        <div class="param-row" data-param="pillar3a_withdrawal_tax_rate">
+          <div class="param-label-row">
+            <span class="param-label">Pillar 3a Withdrawal Tax Rate</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
+        <div class="param-row" data-param="pillar3a_tax_deduction_rate">
+          <div class="param-label-row">
+            <span class="param-label">Pillar 3a Tax Deduction Rate</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
+        <div class="param-row" data-param="stop_pillar3a_contrib_at_retirement">
+          <div class="param-checkbox">
+            <input type="checkbox" id="stop_pillar3a_contrib_at_retirement" checked>
+            <label for="stop_pillar3a_contrib_at_retirement">Stop Pillar 3a Contributions at Retirement</label>
+          </div>
+        </div>
+
+      </div>
+    </details>
+
+    <!-- 11. Transaction Costs -->
     <details class="config-group">
       <summary data-i18n="group_transaction">Transaction Costs</summary>
       <div class="config-group-body">
