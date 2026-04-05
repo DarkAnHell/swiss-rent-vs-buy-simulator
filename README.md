@@ -72,10 +72,6 @@ npx serve web
 
 Then open `http://localhost:8080`.
 
-## Origin
-
-Originally a Python simulation (`buy-rent.py` + `buy_rent_config.py`) ported to a fully client-side JavaScript web app. The Python version uses NumPy and Matplotlib; the JS version uses Chart.js and Web Workers.
-
 ## License
 
 MIT
