@@ -34,7 +34,13 @@
 <div class="app-layout">
 
   <!-- ===== Config Panel ===== -->
-  <aside class="config-panel" id="config-panel">
+  <aside class="config-panel" id="config-panel" data-config-mode="basic">
+
+    <!-- Basic / Advanced toggle -->
+    <div class="config-level-toggle" id="config-level-toggle">
+      <button class="active" data-level="basic" data-i18n="mode_basic">Basic</button>
+      <button data-level="advanced" data-i18n="mode_advanced">Advanced</button>
+    </div>
 
     <!-- Canton Selector -->
     <div class="param-row" style="margin-bottom:14px">

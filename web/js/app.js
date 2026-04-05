@@ -119,6 +119,29 @@ const TOOLTIPS = {
   rent_out_trigger_liquidity_threshold: "Buy→Rent-out strategy: liquid assets threshold below which the property is rented out. 0 = rent out as soon as liquidity hits zero.",
 };
 
+// ---- Basic vs Advanced param split ----
+
+const BASIC_PARAMS = {
+  current_age:                  "e.g. 35",
+  retirement_age:               "e.g. 65",
+  liquid_assets:                "e.g. 100000",
+  income_working_annual:        "e.g. 120000",
+  retirement_income_annual:     "e.g. 30240",
+  non_housing_expenses_working: "e.g. 50000",
+  non_housing_expenses_retired: "e.g. 40000",
+  rent_monthly:                 "e.g. 2000",
+  purchase_price:               "e.g. 1000000",
+  marginal_tax_rate:            "e.g. 0.25",
+  pillar2_start:                "e.g. 50000",
+  pillar2_contrib:              "e.g. 6000",
+  pillar3a_start:               "e.g. 20000",
+  pillar3a_contrib:             "e.g. 7258",
+  cash_downpayment:             "e.g. 200000",
+  pillar2_used:                 "e.g. 0",
+  pillar3a_used:                "e.g. 0",
+  family_help:                  "e.g. 0",
+};
+
 // ---- State ----
 
 let currentCanton = "TG";
@@ -134,6 +157,7 @@ const configToggle = document.getElementById("config-toggle-btn");
 const configPanel = document.getElementById("config-panel");
 const themeToggle = document.getElementById("theme-toggle");
 const langSelect = document.getElementById("lang-select");
+const configLevelToggle = document.getElementById("config-level-toggle");
 
 // ---- Config UI <-> Data ----
 
@@ -159,7 +183,14 @@ function readConfigFromUI() {
 
     if (mode === "fixed") {
       const input = row.querySelector('.fixed-input input[data-field="value"]');
-      if (input) config[key] = parseFloat(input.value) || 0;
+      if (input) {
+        const val = input.value.trim();
+        if (val === "") {
+          // Empty field — keep DEFAULT_CONFIG value (already spread above)
+        } else {
+          config[key] = parseFloat(val) || 0;
+        }
+      }
     } else {
       const minInput = row.querySelector('.range-inputs input[data-field="min"]');
       const maxInput = row.querySelector('.range-inputs input[data-field="max"]');
@@ -224,7 +255,14 @@ function populateUI(config) {
       fixedGroup?.classList.remove("hidden");
       rangeGroup?.classList.remove("active");
       const input = row.querySelector('.fixed-input input[data-field="value"]');
-      if (input) input.value = typeof value === "number" ? value : "";
+      if (input) {
+        if (key in BASIC_PARAMS) {
+          input.value = "";
+          input.placeholder = BASIC_PARAMS[key];
+        } else {
+          input.value = typeof value === "number" ? value : "";
+        }
+      }
     }
   }
 }
@@ -460,7 +498,42 @@ function injectTooltips() {
   }
 }
 
-// ---- Init ----
+// ---- Config level (Basic / Advanced) ----
+
+function initConfigLevels() {
+  // Tag every param-row as basic or advanced
+  document.querySelectorAll(".param-row[data-param]").forEach((row) => {
+    const param = row.dataset.param;
+    row.dataset.level = param in BASIC_PARAMS ? "basic" : "advanced";
+  });
+}
+
+function initConfigLevelToggle() {
+  const saved = localStorage.getItem("configLevel") || "basic";
+  applyConfigLevel(saved);
+
+  configLevelToggle?.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyConfigLevel(btn.dataset.level);
+    });
+  });
+}
+
+function applyConfigLevel(level) {
+  if (configPanel) configPanel.dataset.configMode = level;
+  localStorage.setItem("configLevel", level);
+  configLevelToggle?.querySelectorAll("button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.level === level);
+  });
+
+  // In basic mode, auto-open visible groups so users see the fields
+  if (level === "basic") {
+    document.querySelectorAll(".config-group").forEach((group) => {
+      const hasBasic = group.querySelector('.param-row[data-level="basic"]');
+      if (hasBasic) group.open = true;
+    });
+  }
+}
 
 // ---- Theme ----
 
@@ -510,10 +583,12 @@ function wireDownloadButtons() {
 // ---- Init ----
 
 function init() {
+  initConfigLevels();
   populateUI(DEFAULT_CONFIG);
   injectTooltips();
   initTheme();
   initLang();
+  initConfigLevelToggle();
 
   if (cantonSelect) {
     cantonSelect.value = currentCanton;

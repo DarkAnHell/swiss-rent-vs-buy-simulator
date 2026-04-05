@@ -670,6 +670,53 @@
   color: var(--color-header-text);
 }
 
+/* ===== Config Level Toggle (Basic / Advanced) ===== */
+.config-level-toggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.config-level-toggle button {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.config-level-toggle button.active {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.config-level-toggle button:hover:not(.active) {
+  background: var(--color-surface);
+}
+
+/* Hide advanced params in basic mode */
+.config-panel[data-config-mode="basic"] .param-row[data-level="advanced"] {
+  display: none;
+}
+
+/* Hide entire groups that have no basic params */
+.config-panel[data-config-mode="basic"] .config-group:not(:has(.param-row[data-level="basic"])) {
+  display: none;
+}
+
+/* Basic param empty-field placeholder styling */
+.param-row[data-level="basic"] input::placeholder {
+  color: var(--color-muted, #999);
+  font-style: italic;
+}
+
 /* ===== Chart Download Button ===== */
 .chart-card {
   position: relative;
