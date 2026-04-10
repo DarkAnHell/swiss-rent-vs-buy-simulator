@@ -622,66 +622,13 @@ export function simulate(p) {
     net_cashflow_buy_let_immediate[0], 0, p
   );
 
-  // Buy->rent-out-on-trigger loop
-  const second_home_deposit_trigger_bal = new Float64Array(N);
-  let switched_to_let = false;
-  let switched_to_let_year = -1;
+  // -----------------------------------------------------------------------
+  // Pillar 2 & 3a accumulation (computed BEFORE investment loops so that
+  // annuity income / lump-sum withdrawals / tax benefits can be fed into
+  // the investment loop as proper compounding contributions)
+  // -----------------------------------------------------------------------
 
-  for (let t = 0; t < N; t++) {
-    let prev;
-    if (t === 0) {
-      prev = p.liquid_assets - upfront_from_liquid;
-    } else {
-      prev = inv_buy_let_trigger[t - 1];
-    }
-
-    if (!switched_to_let) {
-      const owner_cash_out = total_cash_out_buy[t];
-      const owner_net_cf = net_cashflow_buy[t];
-      const owner_projected = investStep(prev, owner_net_cf, t, p);
-      if (t >= 1 && owner_projected <= p.rent_out_trigger_liquidity_threshold) {
-        switched_to_let = true;
-        switched_to_let_year = t;
-        const deposit_add = (
-          p.second_home_rent_deposit_months
-          * second_home_rent_monthly_base
-          * Math.pow(1.0 + p.rent_growth, t)
-        );
-        second_home_deposit_trigger_bal[t] = (
-          t === 0
-            ? deposit_add
-            : second_home_deposit_trigger_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate) + deposit_add
-        );
-        total_cash_out_buy_let_trigger[t] = total_cash_out_buy_let_base[t];
-        net_cashflow_buy_let_trigger[t] = net_cashflow_buy_let_base[t];
-        inv_buy_let_trigger[t] = investStep(prev - deposit_add, net_cashflow_buy_let_trigger[t], t, p);
-      } else {
-        total_cash_out_buy_let_trigger[t] = owner_cash_out;
-        net_cashflow_buy_let_trigger[t] = owner_net_cf;
-        inv_buy_let_trigger[t] = owner_projected;
-        if (t > 0) {
-          second_home_deposit_trigger_bal[t] = second_home_deposit_trigger_bal[t - 1];
-        }
-      }
-    } else {
-      second_home_deposit_trigger_bal[t] = (
-        second_home_deposit_trigger_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate)
-      );
-      total_cash_out_buy_let_trigger[t] = total_cash_out_buy_let_base[t];
-      net_cashflow_buy_let_trigger[t] = net_cashflow_buy_let_base[t];
-      inv_buy_let_trigger[t] = investStep(prev, net_cashflow_buy_let_trigger[t], t, p);
-    }
-  }
-
-  // Main inv loops for buy, rent, immediate
-  for (let t = 1; t < N; t++) {
-    inv_buy[t] = investStep(inv_buy[t - 1], net_cashflow_buy[t], t, p);
-    inv_rent[t] = investStep(inv_rent[t - 1], net_cashflow_rent[t], t, p);
-    inv_buy_let_immediate[t] = investStep(inv_buy_let_immediate[t - 1], net_cashflow_buy_let_immediate[t], t, p);
-    second_home_deposit_immediate_bal[t] = second_home_deposit_immediate_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate);
-  }
-
-  // 2nd pillar with annuitization at retirement
+  // 2nd pillar
   const p2_rent = new Float64Array(N);
   const p2_buy = new Float64Array(N);
   const p2_annuity_rent = new Float64Array(N);
@@ -697,8 +644,6 @@ export function simulate(p) {
     if (p.stop_pillar2_contrib_at_retirement && t >= retirement_year) {
       contrib = 0.0;
     }
-
-    // Annuitize at retirement year
     if (p.pillar2_annuitize_at_retirement && t === retirement_year) {
       const rent_annuity_val = p2_rent[t - 1] * pr * p.pillar2_conversion_rate;
       const buy_annuity_val = p2_buy[t - 1] * pr * p.pillar2_conversion_rate;
@@ -716,59 +661,137 @@ export function simulate(p) {
     }
   }
 
-  // Add P2 annuity income to investment accounts
-  if (p.pillar2_annuitize_at_retirement) {
-    for (let t = retirement_year; t < N; t++) {
-      inv_rent[t] += p2_annuity_rent[t];
-      inv_buy[t] += p2_annuity_buy[t];
-      inv_buy_let_trigger[t] += p2_annuity_buy[t];
-      inv_buy_let_immediate[t] += p2_annuity_buy[t];
-    }
-  }
-
-  // 3rd pillar (3a) — lump-sum withdrawal at retirement
+  // 3rd pillar (3a)
   const p3a_rent = new Float64Array(N);
   const p3a_buy = new Float64Array(N);
   p3a_rent[0] = p.pillar3a_start;
   p3a_buy[0] = Math.max(0.0, p.pillar3a_start - p.pillar3a_used);
   const p3r = 1.0 + p.pillar3a_rate;
-  // Annual tax deduction benefit from P3a contributions (added to investment account)
-  const p3a_tax_benefit = p.pillar3a_contrib * p.pillar3a_tax_deduction_rate;
 
   for (let t = 1; t < N; t++) {
     let contrib3a = p.pillar3a_contrib;
     if (p.stop_pillar3a_contrib_at_retirement && t >= retirement_year) {
       contrib3a = 0.0;
     }
-
-    // At retirement: withdraw lump sum (mandatory for 3a), add to investment after tax
     if (t === retirement_year) {
-      const p3a_rent_bal = p3a_rent[t - 1] * p3r + contrib3a;
-      const p3a_buy_bal = p3a_buy[t - 1] * p3r + contrib3a;
-      const p3a_rent_tax = p3a_rent_bal * p.pillar3a_withdrawal_tax_rate;
-      const p3a_buy_tax = p3a_buy_bal * p.pillar3a_withdrawal_tax_rate;
-      inv_rent[t] += p3a_rent_bal - p3a_rent_tax;
-      inv_buy[t] += p3a_buy_bal - p3a_buy_tax;
-      inv_buy_let_trigger[t] += p3a_buy_bal - p3a_buy_tax;
-      inv_buy_let_immediate[t] += p3a_buy_bal - p3a_buy_tax;
-      p3a_rent[t] = 0.0;
-      p3a_buy[t] = 0.0;
+      // Balance just before withdrawal (final growth + contribution)
+      p3a_rent[t] = p3a_rent[t - 1] * p3r + contrib3a;
+      p3a_buy[t] = p3a_buy[t - 1] * p3r + contrib3a;
+      // Will be zeroed after computing lump sums below
     } else if (t < retirement_year) {
       p3a_rent[t] = p3a_rent[t - 1] * p3r + contrib3a;
       p3a_buy[t] = p3a_buy[t - 1] * p3r + contrib3a;
-      // Tax deduction benefit on contributions
-      if (p3a_tax_benefit > 0 && contrib3a > 0) {
-        const benefit = contrib3a * p.pillar3a_tax_deduction_rate;
-        inv_rent[t] += benefit;
-        inv_buy[t] += benefit;
-        inv_buy_let_trigger[t] += benefit;
-        inv_buy_let_immediate[t] += benefit;
-      }
     } else {
-      // Post-retirement: already withdrawn
       p3a_rent[t] = 0.0;
       p3a_buy[t] = 0.0;
     }
+  }
+
+  // Pre-compute P3a lump-sum net amounts at retirement
+  let p3a_rent_lump_net = 0.0;
+  let p3a_buy_lump_net = 0.0;
+  if (retirement_year > 0 && retirement_year < N) {
+    p3a_rent_lump_net = p3a_rent[retirement_year] * (1.0 - p.pillar3a_withdrawal_tax_rate);
+    p3a_buy_lump_net = p3a_buy[retirement_year] * (1.0 - p.pillar3a_withdrawal_tax_rate);
+    // Zero out balances post-withdrawal
+    for (let t = retirement_year; t < N; t++) {
+      p3a_rent[t] = 0.0;
+      p3a_buy[t] = 0.0;
+    }
+  }
+
+  // Build per-year extra-contribution arrays for the investment loop:
+  // P2 annuity income + P3a lump sum + P3a tax deduction benefit
+  const extra_contrib_rent = new Float64Array(N);
+  const extra_contrib_buy = new Float64Array(N);
+
+  for (let t = 0; t < N; t++) {
+    // P2 annuity income (annual pension)
+    if (p.pillar2_annuitize_at_retirement) {
+      extra_contrib_rent[t] += p2_annuity_rent[t];
+      extra_contrib_buy[t] += p2_annuity_buy[t];
+    }
+
+    // P3a tax deduction benefit (while contributing)
+    if (t < retirement_year || !p.stop_pillar3a_contrib_at_retirement) {
+      const contrib3a_t = (p.stop_pillar3a_contrib_at_retirement && t >= retirement_year) ? 0.0 : p.pillar3a_contrib;
+      if (contrib3a_t > 0 && p.pillar3a_tax_deduction_rate > 0) {
+        const benefit = contrib3a_t * p.pillar3a_tax_deduction_rate;
+        extra_contrib_rent[t] += benefit;
+        extra_contrib_buy[t] += benefit;
+      }
+    }
+  }
+
+  // P3a lump sum (one-time at retirement)
+  if (retirement_year > 0 && retirement_year < N) {
+    extra_contrib_rent[retirement_year] += p3a_rent_lump_net;
+    extra_contrib_buy[retirement_year] += p3a_buy_lump_net;
+  }
+
+  // -----------------------------------------------------------------------
+  // Buy->rent-out-on-trigger loop (uses extra_contrib_buy)
+  // -----------------------------------------------------------------------
+  const second_home_deposit_trigger_bal = new Float64Array(N);
+  let switched_to_let = false;
+  let switched_to_let_year = -1;
+
+  for (let t = 0; t < N; t++) {
+    let prev;
+    if (t === 0) {
+      prev = p.liquid_assets - upfront_from_liquid;
+    } else {
+      prev = inv_buy_let_trigger[t - 1];
+    }
+
+    const extra = extra_contrib_buy[t];
+
+    if (!switched_to_let) {
+      const owner_cash_out = total_cash_out_buy[t];
+      const owner_net_cf = net_cashflow_buy[t];
+      const owner_projected = investStep(prev, owner_net_cf + extra, t, p);
+      if (t >= 1 && owner_projected <= p.rent_out_trigger_liquidity_threshold) {
+        switched_to_let = true;
+        switched_to_let_year = t;
+        const deposit_add = (
+          p.second_home_rent_deposit_months
+          * second_home_rent_monthly_base
+          * Math.pow(1.0 + p.rent_growth, t)
+        );
+        second_home_deposit_trigger_bal[t] = (
+          t === 0
+            ? deposit_add
+            : second_home_deposit_trigger_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate) + deposit_add
+        );
+        total_cash_out_buy_let_trigger[t] = total_cash_out_buy_let_base[t];
+        net_cashflow_buy_let_trigger[t] = net_cashflow_buy_let_base[t];
+        inv_buy_let_trigger[t] = investStep(prev - deposit_add, net_cashflow_buy_let_trigger[t] + extra, t, p);
+      } else {
+        total_cash_out_buy_let_trigger[t] = owner_cash_out;
+        net_cashflow_buy_let_trigger[t] = owner_net_cf;
+        inv_buy_let_trigger[t] = owner_projected;
+        if (t > 0) {
+          second_home_deposit_trigger_bal[t] = second_home_deposit_trigger_bal[t - 1];
+        }
+      }
+    } else {
+      second_home_deposit_trigger_bal[t] = (
+        second_home_deposit_trigger_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate)
+      );
+      total_cash_out_buy_let_trigger[t] = total_cash_out_buy_let_base[t];
+      net_cashflow_buy_let_trigger[t] = net_cashflow_buy_let_base[t];
+      inv_buy_let_trigger[t] = investStep(prev, net_cashflow_buy_let_trigger[t] + extra, t, p);
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Main investment loops — pillar income now compounds correctly
+  // -----------------------------------------------------------------------
+  for (let t = 1; t < N; t++) {
+    inv_buy[t] = investStep(inv_buy[t - 1], net_cashflow_buy[t] + extra_contrib_buy[t], t, p);
+    inv_rent[t] = investStep(inv_rent[t - 1], net_cashflow_rent[t] + extra_contrib_rent[t], t, p);
+    inv_buy_let_immediate[t] = investStep(inv_buy_let_immediate[t - 1], net_cashflow_buy_let_immediate[t] + extra_contrib_buy[t], t, p);
+    second_home_deposit_immediate_bal[t] = second_home_deposit_immediate_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate);
   }
 
   // Rent deposit balance
