@@ -15,7 +15,7 @@ const SERIES_GROUPS = [
   "networth", "total_cash_out", "net_cashflow", "invest",
 ];
 
-const STRATEGIES = ["_rent", "_buy", "_buy_let_trigger", "_buy_let_immediate"];
+const STRATEGIES = ["_rent", "_buy", "_buy_repay_first", "_buy_let_trigger", "_buy_let_immediate"];
 
 // Number of histogram bins for end-delta distribution
 const HIST_BINS = 40;

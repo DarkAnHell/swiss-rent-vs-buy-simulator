@@ -4,15 +4,17 @@
  */
 
 const COLORS = {
-  rent:          { line: "#1F77B4", fill: "rgba(31,119,180,0.05)" },
-  buy_owner:     { line: "#FF7F0E", fill: "rgba(255,127,14,0.05)" },
-  buy_let_trig:  { line: "#2CA02C", fill: "rgba(44,160,44,0.05)" },
-  buy_let_imm:   { line: "#9467BD", fill: "rgba(148,103,189,0.05)" },
+  rent:           { line: "#1F77B4", fill: "rgba(31,119,180,0.05)" },
+  buy_keep1st:    { line: "#FF7F0E", fill: "rgba(255,127,14,0.05)" },
+  buy_repay1st:   { line: "#E377C2", fill: "rgba(227,119,194,0.05)" },
+  buy_let_trig:   { line: "#2CA02C", fill: "rgba(44,160,44,0.05)" },
+  buy_let_imm:    { line: "#9467BD", fill: "rgba(148,103,189,0.05)" },
 };
 
 const STRATEGY_LABELS = {
   rent: "Rent",
-  buy_owner: "Buy (Owner)",
+  buy_keep1st: "Buy (Keep 1st mortgage)",
+  buy_repay1st: "Buy (Repay 1st mortgage)",
   buy_let_trig: "Buy\u2192Rent-out",
   buy_let_imm: "Buy & Rent-out",
 };
@@ -210,8 +212,8 @@ function getOrCreate(canvasId, config) {
 // ---- Chart builders from aggregate ----
 
 const SERIES_GROUPS = ["networth", "total_cash_out", "net_cashflow", "invest"];
-const STRATEGIES = ["_rent", "_buy", "_buy_let_trigger", "_buy_let_immediate"];
-const STRAT_KEYS = ["rent", "buy_owner", "buy_let_trig", "buy_let_imm"];
+const STRATEGIES = ["_rent", "_buy", "_buy_repay_first", "_buy_let_trigger", "_buy_let_immediate"];
+const STRAT_KEYS = ["rent", "buy_keep1st", "buy_repay1st", "buy_let_trig", "buy_let_imm"];
 
 function envelopeChart(canvasId, agg, group, yLabel, events) {
   const T = agg.T;

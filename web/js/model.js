@@ -21,13 +21,30 @@ export const SWISS_MIN_NON_AMORTIZING_LTV = 0.65;
  */
 
 /**
+ * Build a mortgage amortization plan.
+ *
+ * Swiss mortgages are split into two tranches:
+ * - 1st mortgage: up to target_ltv (typically 65%) of the purchase price.
+ *   Not legally required to be amortized.
+ * - 2nd mortgage: the slice between target_ltv and the actual LTV (e.g. 65–80%).
+ *   Must be amortized within `amort_years` (Swiss law: 15 years / by retirement).
+ *
+ * If the down payment already covers (1 - target_ltv) of the price, the entire
+ * remaining mortgage IS the 1st mortgage and there is no 2nd mortgage at all.
+ *
  * @param {Object} p - params
+ * @param {Object} [opts]
+ * @param {boolean} [opts.repayFirstMortgage=false] - if true, the 1st mortgage
+ *   is also amortized over `amort_years`, on top of the 2nd mortgage. The full
+ *   outstanding mortgage runs to zero by year `amort_years`.
  * @returns {MortgagePlan}
  */
-export function buildMortgagePlan(p) {
+export function buildMortgagePlan(p, { repayFirstMortgage = false } = {}) {
   const equity_total = p.cash_downpayment + p.pillar2_used + (p.pillar3a_used || 0) + p.family_help;
   const mortgage0 = Math.max(0.0, p.purchase_price - equity_total);
-  const non_amortizing_balance = Math.min(mortgage0, p.target_ltv * p.purchase_price);
+  const non_amortizing_balance = repayFirstMortgage
+    ? 0.0
+    : Math.min(mortgage0, p.target_ltv * p.purchase_price);
   const amortizing_balance0 = Math.max(0.0, mortgage0 - non_amortizing_balance);
   const annual_amortization = p.amort_years > 0 ? amortizing_balance0 / p.amort_years : 0.0;
   return { initial_balance: mortgage0, non_amortizing_balance, annual_amortization };
@@ -477,21 +494,42 @@ export function simulate(p) {
     rent_housing_cash_out[t] = rent_annual_gross[t] + rent_insurance[t];
   }
 
-  // Mortgage
+  // Mortgage — two parallel plans:
+  //   - mortgage_plan         : Swiss default. 1st mortgage (up to target_ltv)
+  //                              never amortized; only the 2nd mortgage runs
+  //                              down over amort_years.
+  //   - mortgage_plan_repay1st: full amortization. The entire mortgage (1st +
+  //                              2nd) runs to zero over amort_years, so the
+  //                              monthly cash-out is higher while amortizing
+  //                              and zero interest after.
   const mortgage_plan = buildMortgagePlan(p);
+  const mortgage_plan_repay1st = buildMortgagePlan(p, { repayFirstMortgage: true });
+
   const mortgage_bal = new Float64Array(N);
   const interest_arr = new Float64Array(N);
   const principal_arr = new Float64Array(N);
   const capex_arr = new Float64Array(N);
 
+  const mortgage_bal_r1 = new Float64Array(N);
+  const interest_arr_r1 = new Float64Array(N);
+  const principal_arr_r1 = new Float64Array(N);
+
   let mb = mortgage_plan.initial_balance;
+  let mb_r1 = mortgage_plan_repay1st.initial_balance;
   for (let t = 0; t < N; t++) {
     const mr = computeMortgageYear(p, mortgage_plan, t, mb);
     interest_arr[t] = mr.interest;
     principal_arr[t] = mr.principal;
     mortgage_bal[t] = mr.mortgage_end;
-    capex_arr[t] = capexForYear(p, t, home_value[t]);
     mb = mr.mortgage_end;
+
+    const mr_r1 = computeMortgageYear(p, mortgage_plan_repay1st, t, mb_r1);
+    interest_arr_r1[t] = mr_r1.interest;
+    principal_arr_r1[t] = mr_r1.principal;
+    mortgage_bal_r1[t] = mr_r1.mortgage_end;
+    mb_r1 = mr_r1.mortgage_end;
+
+    capex_arr[t] = capexForYear(p, t, home_value[t]);
   }
 
   // Cumulative capex
@@ -514,12 +552,16 @@ export function simulate(p) {
     property_wealth_tax[t] = home_value[t] * p.property_tax_assessment_pct * p.wealth_tax_rate;
   }
 
-  // Tax impact
+  // Tax impact (Swiss default plan: only 2nd mortgage amortized)
   const imputed_rent = new Float64Array(N);
   const maintenance_deduction = new Float64Array(N);
   const interest_deduction = new Float64Array(N);
   const taxable_imputed = new Float64Array(N);
   const tax_impact = new Float64Array(N);
+  // Tax impact (repay-1st plan: lower interest deduction as 1st mortgage shrinks)
+  const interest_deduction_r1 = new Float64Array(N);
+  const taxable_imputed_r1 = new Float64Array(N);
+  const tax_impact_r1 = new Float64Array(N);
 
   for (let t = 0; t < N; t++) {
     imputed_rent[t] = p.imputed_rent_pct * rent_annual_gross[t];
@@ -527,25 +569,38 @@ export function simulate(p) {
     interest_deduction[t] = interest_arr[t] * p.mortgage_interest_deductible_pct;
     taxable_imputed[t] = imputed_rent[t] - interest_deduction[t] - maintenance_deduction[t] - capex_arr[t];
     tax_impact[t] = taxable_imputed[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+
+    interest_deduction_r1[t] = interest_arr_r1[t] * p.mortgage_interest_deductible_pct;
+    taxable_imputed_r1[t] = imputed_rent[t] - interest_deduction_r1[t] - maintenance_deduction[t] - capex_arr[t];
+    tax_impact_r1[t] = taxable_imputed_r1[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
   }
 
-  // Buy housing cash out
+  // Buy housing cash out (default vs repay-1st)
   const buy_housing_cash_out = new Float64Array(N);
+  const buy_housing_cash_out_r1 = new Float64Array(N);
   for (let t = 0; t < N; t++) {
     buy_housing_cash_out[t] = (
       interest_arr[t] + principal_arr[t] + maintenance[t] + other_owner[t]
       + prop_tax[t] + capex_arr[t] + tax_impact[t] + property_wealth_tax[t]
     );
+    buy_housing_cash_out_r1[t] = (
+      interest_arr_r1[t] + principal_arr_r1[t] + maintenance[t] + other_owner[t]
+      + prop_tax[t] + capex_arr[t] + tax_impact_r1[t] + property_wealth_tax[t]
+    );
   }
 
   const total_cash_out_buy = new Float64Array(N);
+  const total_cash_out_buy_repay_first = new Float64Array(N);
   const total_cash_out_rent = new Float64Array(N);
   const net_cashflow_buy = new Float64Array(N);
+  const net_cashflow_buy_repay_first = new Float64Array(N);
   const net_cashflow_rent = new Float64Array(N);
   for (let t = 0; t < N; t++) {
     total_cash_out_buy[t] = buy_housing_cash_out[t] + non_housing_expenses[t] + retirement_oneoff[t];
+    total_cash_out_buy_repay_first[t] = buy_housing_cash_out_r1[t] + non_housing_expenses[t] + retirement_oneoff[t];
     total_cash_out_rent[t] = rent_housing_cash_out[t] + non_housing_expenses[t] + retirement_oneoff[t];
     net_cashflow_buy[t] = income_annual[t] - total_cash_out_buy[t];
+    net_cashflow_buy_repay_first[t] = income_annual[t] - total_cash_out_buy_repay_first[t];
     net_cashflow_rent[t] = income_annual[t] - total_cash_out_rent[t];
   }
 
@@ -596,6 +651,7 @@ export function simulate(p) {
   // Investment accounts
   const inv_rent = new Float64Array(N);
   const inv_buy = new Float64Array(N);
+  const inv_buy_repay_first = new Float64Array(N);
   const inv_buy_let_trigger = new Float64Array(N);
   const inv_buy_let_immediate = new Float64Array(N);
 
@@ -616,6 +672,7 @@ export function simulate(p) {
 
   // Year 0
   inv_buy[0] = investStep(p.liquid_assets - upfront_from_liquid, net_cashflow_buy[0], 0, p);
+  inv_buy_repay_first[0] = investStep(p.liquid_assets - upfront_from_liquid, net_cashflow_buy_repay_first[0], 0, p);
   inv_rent[0] = investStep(p.liquid_assets - rent_upfront, net_cashflow_rent[0], 0, p);
   inv_buy_let_immediate[0] = investStep(
     p.liquid_assets - upfront_from_liquid - second_home_deposit0,
@@ -789,6 +846,7 @@ export function simulate(p) {
   // -----------------------------------------------------------------------
   for (let t = 1; t < N; t++) {
     inv_buy[t] = investStep(inv_buy[t - 1], net_cashflow_buy[t] + extra_contrib_buy[t], t, p);
+    inv_buy_repay_first[t] = investStep(inv_buy_repay_first[t - 1], net_cashflow_buy_repay_first[t] + extra_contrib_buy[t], t, p);
     inv_rent[t] = investStep(inv_rent[t - 1], net_cashflow_rent[t] + extra_contrib_rent[t], t, p);
     inv_buy_let_immediate[t] = investStep(inv_buy_let_immediate[t - 1], net_cashflow_buy_let_immediate[t] + extra_contrib_buy[t], t, p);
     second_home_deposit_immediate_bal[t] = second_home_deposit_immediate_bal[t - 1] * (1.0 + p.rent_deposit_interest_rate);
@@ -804,9 +862,15 @@ export function simulate(p) {
 
   // Sale proceeds if liquidating at end of each year
   const sale_proceeds = new Float64Array(N);
+  const sale_proceeds_r1 = new Float64Array(N);
   for (let t = 0; t < N; t++) {
     sale_proceeds[t] = saleProceedsAtYear(
       p, t, home_value[t], mortgage_bal[t], capex_cum[t],
+      p.pillar2_used, buying_costs, pillar2_withdrawal_tax,
+      p.pillar3a_used, pillar3a_withdrawal_tax
+    );
+    sale_proceeds_r1[t] = saleProceedsAtYear(
+      p, t, home_value[t], mortgage_bal_r1[t], capex_cum[t],
       p.pillar2_used, buying_costs, pillar2_withdrawal_tax,
       p.pillar3a_used, pillar3a_withdrawal_tax
     );
@@ -819,11 +883,13 @@ export function simulate(p) {
   // Net worths
   const networth_rent = new Float64Array(N);
   const networth_buy = new Float64Array(N);
+  const networth_buy_repay_first = new Float64Array(N);
   const networth_buy_let_trigger = new Float64Array(N);
   const networth_buy_let_immediate = new Float64Array(N);
   for (let t = 0; t < N; t++) {
     networth_rent[t] = inv_rent[t] + p2_rent[t] + p3a_rent[t] + rent_deposit_bal[t];
     networth_buy[t] = inv_buy[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds[t];
+    networth_buy_repay_first[t] = inv_buy_repay_first[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds_r1[t];
     networth_buy_let_trigger[t] = inv_buy_let_trigger[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds[t] + second_home_deposit_trigger_bal[t];
     networth_buy_let_immediate[t] = inv_buy_let_immediate[t] + (p2_buy[t] + p2_repayment) + (p3a_buy[t] + p3a_repayment) + sale_proceeds[t] + second_home_deposit_immediate_bal[t];
   }
@@ -836,25 +902,30 @@ export function simulate(p) {
     years,
     total_cash_out_rent,
     total_cash_out_buy,
+    total_cash_out_buy_repay_first,
     total_cash_out_buy_let_trigger,
     total_cash_out_buy_let_immediate,
     net_cashflow_rent,
     net_cashflow_buy,
+    net_cashflow_buy_repay_first,
     net_cashflow_buy_let_trigger,
     net_cashflow_buy_let_immediate,
     retirement_year: retirement_year <= T ? retirement_year : -1,
     invest_rent: inv_rent,
     invest_buy: inv_buy,
+    invest_buy_repay_first: inv_buy_repay_first,
     invest_buy_let_trigger: inv_buy_let_trigger,
     invest_buy_let_immediate: inv_buy_let_immediate,
     p2_rent_end: p2_rent[T],
     p2_buy_end: p2_buy[T],
     mortgage_balance_end: mortgage_bal[T],
+    mortgage_balance_repay_first_end: mortgage_bal_r1[T],
     buy_let_trigger_switch_year: switched_to_let_year,
     second_home_deposit_trigger_end: second_home_deposit_trigger_bal[T],
     second_home_deposit_immediate_end: second_home_deposit_immediate_bal[T],
     networth_rent,
     networth_buy,
+    networth_buy_repay_first,
     networth_buy_let_trigger,
     networth_buy_let_immediate,
   };

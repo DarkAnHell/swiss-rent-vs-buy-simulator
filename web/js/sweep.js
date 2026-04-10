@@ -277,7 +277,7 @@ export async function runSweep(config, canton, onProgress, numWorkers) {
 
 function buildSingleResultAggregate(tr, diff, be, T) {
   const SERIES_GROUPS = ["networth", "total_cash_out", "net_cashflow", "invest"];
-  const STRATEGIES = ["_rent", "_buy", "_buy_let_trigger", "_buy_let_immediate"];
+  const STRATEGIES = ["_rent", "_buy", "_buy_repay_first", "_buy_let_trigger", "_buy_let_immediate"];
 
   const seriesData = {};
   for (const group of SERIES_GROUPS) {

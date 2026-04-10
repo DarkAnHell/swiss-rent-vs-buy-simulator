@@ -30,7 +30,8 @@ const TRANSLATIONS = {
 
     // Strategies
     strat_rent: "Rent",
-    strat_buy_owner: "Buy Owner",
+    strat_buy_owner: "Buy (Keep 1st mortgage)",
+    strat_buy_repay_first: "Buy (Repay 1st mortgage)",
     strat_buy_then_rent: "Buy \u2192 Rent-out",
     strat_buy_and_rent: "Buy & Rent-out",
 
@@ -200,7 +201,8 @@ const TRANSLATIONS = {
     theme_dark: "Dunkel",
 
     strat_rent: "Mieten",
-    strat_buy_owner: "Kauf (Eigennutzung)",
+    strat_buy_owner: "Kauf (1. Hypothek behalten)",
+    strat_buy_repay_first: "Kauf (1. Hypothek tilgen)",
     strat_buy_then_rent: "Kauf \u2192 Vermieten",
     strat_buy_and_rent: "Kauf & Vermieten",
 
@@ -364,7 +366,8 @@ const TRANSLATIONS = {
     theme_dark: "Sombre",
 
     strat_rent: "Louer",
-    strat_buy_owner: "Acheter (propri\u00e9taire)",
+    strat_buy_owner: "Acheter (garder 1\u00e8re hypoth\u00e8que)",
+    strat_buy_repay_first: "Acheter (rembourser 1\u00e8re hypoth\u00e8que)",
     strat_buy_then_rent: "Acheter \u2192 Louer",
     strat_buy_and_rent: "Acheter & Louer",
 
@@ -528,7 +531,8 @@ const TRANSLATIONS = {
     theme_dark: "Scuro",
 
     strat_rent: "Affitto",
-    strat_buy_owner: "Acquisto (uso proprio)",
+    strat_buy_owner: "Acquisto (mantieni 1\u00aa ipoteca)",
+    strat_buy_repay_first: "Acquisto (estingui 1\u00aa ipoteca)",
     strat_buy_then_rent: "Acquisto \u2192 Affitto",
     strat_buy_and_rent: "Acquisto & Affitto",
 
