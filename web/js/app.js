@@ -158,6 +158,8 @@ const configPanel = document.getElementById("config-panel");
 const themeToggle = document.getElementById("theme-toggle");
 const langSelect = document.getElementById("lang-select");
 const configLevelToggle = document.getElementById("config-level-toggle");
+const btnExportPreset = document.getElementById("btn-export-preset");
+const importPresetInput = document.getElementById("import-preset-input");
 
 // ---- Config UI <-> Data ----
 
@@ -209,8 +211,11 @@ function readConfigFromUI() {
 
 /**
  * Populate the UI from a config object.
+ * @param {Object} config
+ * @param {boolean} forceValues - if true, populate basic params with their actual values
+ *                                (used when loading a saved preset)
  */
-function populateUI(config) {
+function populateUI(config, forceValues = false) {
   const rows = document.querySelectorAll(".param-row[data-param]");
   for (const row of rows) {
     const key = row.dataset.param;
@@ -256,11 +261,12 @@ function populateUI(config) {
       rangeGroup?.classList.remove("active");
       const input = row.querySelector('.fixed-input input[data-field="value"]');
       if (input) {
-        if (key in BASIC_PARAMS) {
+        if (!forceValues && key in BASIC_PARAMS) {
           input.value = "";
           input.placeholder = BASIC_PARAMS[key];
         } else {
           input.value = typeof value === "number" ? value : "";
+          if (key in BASIC_PARAMS) input.placeholder = BASIC_PARAMS[key];
         }
       }
     }
@@ -580,6 +586,50 @@ function wireDownloadButtons() {
   });
 }
 
+// ---- Export / Import preset ----
+
+function exportPreset() {
+  const config = readConfigFromUI();
+  const preset = {
+    version: 1,
+    canton: currentCanton,
+    config,
+  };
+  const json = JSON.stringify(preset, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const date = new Date().toISOString().slice(0, 10);
+  a.download = `preset_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importPreset(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const preset = JSON.parse(e.target.result);
+      if (!preset || typeof preset.config !== "object") {
+        throw new Error("Not a valid preset file.");
+      }
+
+      // Restore canton selector
+      const canton = preset.canton || "";
+      currentCanton = canton;
+      if (cantonSelect) cantonSelect.value = canton;
+
+      // Restore all param values, including basic ones
+      populateUI(preset.config, true);
+      updateComboCount();
+    } catch (err) {
+      alert(`${t("import_error")}: ${err.message}`);
+    }
+  };
+  reader.readAsText(file);
+}
+
 // ---- Init ----
 
 function init() {
@@ -600,6 +650,15 @@ function init() {
 
   wireModeToggles();
   wireDownloadButtons();
+
+  btnExportPreset?.addEventListener("click", exportPreset);
+  importPresetInput?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      importPreset(file);
+      e.target.value = ""; // reset so same file can be re-imported
+    }
+  });
 
   btnRun?.addEventListener("click", runSimulation);
 
