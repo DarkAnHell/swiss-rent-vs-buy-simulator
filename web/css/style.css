@@ -708,8 +708,7 @@
   margin-bottom: 12px;
 }
 
-.config-preset-actions button,
-.config-preset-actions label {
+.config-preset-actions button {
   flex: 1;
   display: flex;
   align-items: center;
@@ -726,13 +725,37 @@
   user-select: none;
 }
 
-.config-preset-actions button:hover,
-.config-preset-actions label:hover {
+.config-preset-actions button:hover {
   background: var(--color-surface);
 }
 
-.config-preset-actions label input[type="file"] {
-  display: none;
+
+/* ===== Canton-locked param rows ===== */
+.param-row[data-canton-locked="true"] .param-label {
+  color: var(--color-text-muted);
+}
+
+.param-row[data-canton-locked="true"] .param-label::after {
+  content: "canton";
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  margin-left: 6px;
+  font-weight: 400;
+  vertical-align: middle;
+}
+
+.param-row[data-canton-locked="true"] .fixed-input input[readonly] {
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  cursor: not-allowed;
+}
+
+.param-row[data-canton-locked="true"] .mode-toggle {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 /* Hide advanced params in basic mode */

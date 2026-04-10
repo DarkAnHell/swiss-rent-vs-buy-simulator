@@ -159,6 +159,7 @@ const themeToggle = document.getElementById("theme-toggle");
 const langSelect = document.getElementById("lang-select");
 const configLevelToggle = document.getElementById("config-level-toggle");
 const btnExportPreset = document.getElementById("btn-export-preset");
+const btnImportPreset = document.getElementById("btn-import-preset");
 const importPresetInput = document.getElementById("import-preset-input");
 
 // ---- Config UI <-> Data ----
@@ -275,18 +276,48 @@ function populateUI(config, forceValues = false) {
 
 /**
  * Apply canton profile overrides to the UI.
+ * Locked fields are forced to fixed mode, made readonly, and visually grayed out.
  */
 function applyCanton(code) {
+  // Unlock and restore defaults for any previously canton-locked rows
+  document.querySelectorAll(".param-row[data-canton-locked]").forEach((row) => {
+    const key = row.dataset.param;
+    row.removeAttribute("data-canton-locked");
+    const input = row.querySelector('.fixed-input input[data-field="value"]');
+    if (input) input.removeAttribute("readonly");
+    // Restore the DEFAULT_CONFIG value for this param (may be a range)
+    if (key && DEFAULT_CONFIG[key] !== undefined) {
+      populateUI({ [key]: DEFAULT_CONFIG[key] }, false);
+    }
+  });
+
   currentCanton = code || "";
+
   if (currentCanton && CANTON_PROFILES[currentCanton]) {
     const profile = CANTON_PROFILES[currentCanton];
     for (const [key, val] of Object.entries(profile)) {
       const row = document.querySelector(`.param-row[data-param="${key}"]`);
       if (!row) continue;
+
+      // Force fixed mode (canton value is always a scalar)
+      const fixedBtn = row.querySelector('.mode-toggle button[data-mode="fixed"]');
+      const rangeBtn = row.querySelector('.mode-toggle button[data-mode="range"]');
+      const fixedGroup = row.querySelector(".fixed-input");
+      const rangeGroup = row.querySelector(".range-inputs");
+      fixedBtn?.classList.add("active");
+      rangeBtn?.classList.remove("active");
+      fixedGroup?.classList.remove("hidden");
+      rangeGroup?.classList.remove("active");
+
       const input = row.querySelector('.fixed-input input[data-field="value"]');
-      if (input) input.value = val;
+      if (input) {
+        input.value = val;
+        input.setAttribute("readonly", "");
+      }
+      row.dataset.cantonLocked = "true";
     }
   }
+
   updateComboCount();
 }
 
@@ -652,6 +683,7 @@ function init() {
   wireDownloadButtons();
 
   btnExportPreset?.addEventListener("click", exportPreset);
+  btnImportPreset?.addEventListener("click", () => importPresetInput?.click());
   importPresetInput?.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (file) {
