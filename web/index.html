@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Swiss Rent vs Buy Simulator</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 </head>
 <body>
 
@@ -1788,28 +1788,33 @@
       </div>
     </div>
 
-    <!-- Strategy Legend -->
-    <div class="strategy-legend">
-      <div class="legend-item">
+    <!-- Strategy Legend (clickable to toggle) -->
+    <div class="strategy-legend" id="strategy-legend">
+      <button class="legend-item" data-strategy="rent" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#1F77B4"></span>
         <span data-i18n="strat_rent">Rent</span>
-      </div>
-      <div class="legend-item">
+      </button>
+      <button class="legend-item" data-strategy="buy_keep1st" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#FF7F0E"></span>
         <span data-i18n="strat_buy_owner">Buy (Keep 1st mortgage)</span>
-      </div>
-      <div class="legend-item">
+      </button>
+      <button class="legend-item" data-strategy="buy_repay1st" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#E377C2"></span>
         <span data-i18n="strat_buy_repay_first">Buy (Repay 1st mortgage)</span>
-      </div>
-      <div class="legend-item">
+      </button>
+      <button class="legend-item" data-strategy="buy_let_trig" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#2CA02C"></span>
         <span data-i18n="strat_buy_then_rent">Buy &rarr; Rent-out</span>
-      </div>
-      <div class="legend-item">
+      </button>
+      <button class="legend-item" data-strategy="buy_let_imm" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#9467BD"></span>
         <span data-i18n="strat_buy_and_rent">Buy &amp; Rent-out</span>
-      </div>
+      </button>
+      <span class="legend-sep"></span>
+      <button class="legend-item legend-toggle" id="legend-bands-toggle" type="button" title="Show/hide min-max range">
+        <span class="legend-swatch legend-swatch-band"></span>
+        <span data-i18n="legend_bands">Min-Max range</span>
+      </button>
     </div>
 
     <!-- Chart Grid -->
@@ -1819,56 +1824,56 @@
           <h3 data-i18n="chart_networth">Net Worth Over Time</h3>
           <button class="btn-download" data-chart="chart-networth" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-networth"></canvas>
+        <div class="chart-canvas" id="chart-networth"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_cashout">Annual Cash Outflow</h3>
           <button class="btn-download" data-chart="chart-cashout" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-cashout"></canvas>
+        <div class="chart-canvas" id="chart-cashout"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_cashflow">Net Cash Flow</h3>
           <button class="btn-download" data-chart="chart-cashflow" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-cashflow"></canvas>
+        <div class="chart-canvas" id="chart-cashflow"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_liquidity">Cash Liquidity</h3>
           <button class="btn-download" data-chart="chart-liquidity" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-liquidity"></canvas>
+        <div class="chart-canvas" id="chart-liquidity"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_delta">Buy vs Rent Delta</h3>
           <button class="btn-download" data-chart="chart-delta" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-delta"></canvas>
+        <div class="chart-canvas" id="chart-delta"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_gap_change">Annual Gap Change</h3>
           <button class="btn-download" data-chart="chart-cumulative" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-cumulative"></canvas>
+        <div class="chart-canvas" id="chart-cumulative"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_winshare">Buy Win Share</h3>
           <button class="btn-download" data-chart="chart-winshare" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-winshare"></canvas>
+        <div class="chart-canvas" id="chart-winshare"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_histogram">Delta Histogram</h3>
           <button class="btn-download" data-chart="chart-histogram" data-i18n="btn_download">PNG</button>
         </div>
-        <canvas id="chart-histogram"></canvas>
+        <div class="chart-canvas" id="chart-histogram"></div>
       </div>
     </div>
 

@@ -481,10 +481,10 @@
   color: var(--color-text);
 }
 
-.chart-card canvas {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 16 / 10;
+.chart-card .chart-canvas {
+  width: 100%;
+  height: 320px;
+  position: relative;
 }
 
 /* ===== Strategy Legend ===== */
@@ -500,11 +500,43 @@
 }
 
 .legend-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 12px;
   font-weight: 500;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 120ms ease, border-color 120ms ease, opacity 120ms ease, transform 120ms ease;
+  user-select: none;
+}
+
+.legend-item:hover {
+  background: var(--color-surface-alt, rgba(127, 127, 127, 0.08));
+  border-color: var(--color-border);
+}
+
+.legend-item:active {
+  transform: scale(0.97);
+}
+
+.legend-item:focus-visible {
+  outline: 2px solid #4c8bf5;
+  outline-offset: 2px;
+}
+
+.legend-item.is-off {
+  opacity: 0.38;
+}
+
+.legend-item.is-off .legend-swatch {
+  background: var(--color-border) !important;
+  box-shadow: none !important;
 }
 
 .legend-swatch {
@@ -512,6 +544,27 @@
   height: 14px;
   border-radius: 3px;
   flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.legend-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border);
+  margin: 2px 2px;
+}
+
+.legend-swatch-band {
+  background: linear-gradient(180deg,
+    rgba(127, 127, 127, 0.15) 0%,
+    rgba(127, 127, 127, 0.45) 50%,
+    rgba(127, 127, 127, 0.15) 100%);
+  border: 1px dashed var(--color-text-muted, #8a8a8a);
+}
+
+.legend-item.is-off .legend-swatch-band {
+  background: transparent !important;
+  border-style: dotted;
 }
 
 /* ===== Summary Stats ===== */

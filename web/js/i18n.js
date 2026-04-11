@@ -34,6 +34,7 @@ const TRANSLATIONS = {
     strat_buy_repay_first: "Buy (Repay 1st mortgage)",
     strat_buy_then_rent: "Buy \u2192 Rent-out",
     strat_buy_and_rent: "Buy & Rent-out",
+    legend_bands: "Min-Max range",
 
     // Chart titles
     chart_networth: "Net Worth Over Time",
@@ -205,6 +206,7 @@ const TRANSLATIONS = {
     strat_buy_repay_first: "Kauf (1. Hypothek tilgen)",
     strat_buy_then_rent: "Kauf \u2192 Vermieten",
     strat_buy_and_rent: "Kauf & Vermieten",
+    legend_bands: "Min-Max-Bereich",
 
     chart_networth: "Verm\u00f6gensentwicklung",
     chart_cashout: "J\u00e4hrliche Ausgaben",
@@ -370,6 +372,7 @@ const TRANSLATIONS = {
     strat_buy_repay_first: "Acheter (rembourser 1\u00e8re hypoth\u00e8que)",
     strat_buy_then_rent: "Acheter \u2192 Louer",
     strat_buy_and_rent: "Acheter & Louer",
+    legend_bands: "Plage min-max",
 
     chart_networth: "\u00c9volution de la fortune",
     chart_cashout: "D\u00e9penses annuelles",
@@ -535,6 +538,7 @@ const TRANSLATIONS = {
     strat_buy_repay_first: "Acquisto (estingui 1\u00aa ipoteca)",
     strat_buy_then_rent: "Acquisto \u2192 Affitto",
     strat_buy_and_rent: "Acquisto & Affitto",
+    legend_bands: "Intervallo min-max",
 
     chart_networth: "Patrimonio nel tempo",
     chart_cashout: "Uscite annuali",

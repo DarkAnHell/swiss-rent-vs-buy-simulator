@@ -5,7 +5,15 @@
 import { DEFAULT_CONFIG, CANTON_PROFILES, lin, log, choices, expandSpec } from "./config.js";
 import { runSweep, totalCombinations } from "./sweep.js";
 import { splitConfig, applyCantonProfile } from "./config.js";
-import { renderAllCharts, renderSummary, destroyAllCharts, downloadChart } from "./charts.js";
+import {
+  renderAllCharts,
+  renderSummary,
+  destroyAllCharts,
+  downloadChart,
+  setStrategyEnabled,
+  setBandsEnabled,
+  getVisibility,
+} from "./charts.js";
 import { t, setLang, applyTranslations } from "./i18n.js";
 
 // ---- Tooltip copy ----
@@ -617,6 +625,32 @@ function wireDownloadButtons() {
   });
 }
 
+// ---- Strategy legend toggles ----
+
+function wireLegendToggles() {
+  // Per-strategy toggles
+  document.querySelectorAll(".strategy-legend .legend-item[data-strategy]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.strategy;
+      const vis = getVisibility();
+      const next = !vis[key];
+      btn.classList.toggle("is-off", !next);
+      setStrategyEnabled(key, next);
+    });
+  });
+
+  // Min-Max range toggle
+  const bandsBtn = document.getElementById("legend-bands-toggle");
+  if (bandsBtn) {
+    bandsBtn.addEventListener("click", () => {
+      const vis = getVisibility();
+      const next = !vis.bands;
+      bandsBtn.classList.toggle("is-off", !next);
+      setBandsEnabled(next);
+    });
+  }
+}
+
 // ---- Export / Import preset ----
 
 function exportPreset() {
@@ -681,6 +715,7 @@ function init() {
 
   wireModeToggles();
   wireDownloadButtons();
+  wireLegendToggles();
 
   btnExportPreset?.addEventListener("click", exportPreset);
   btnImportPreset?.addEventListener("click", () => importPresetInput?.click());

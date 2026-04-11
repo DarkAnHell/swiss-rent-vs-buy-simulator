@@ -1,14 +1,25 @@
 /**
- * Chart rendering using Chart.js.
- * Renders from AGGREGATED stats (mean + min/max band) — never holds individual results.
+ * Chart rendering using Apache ECharts.
+ * Renders from AGGREGATED stats (mean + min/max envelope band).
+ *
+ * Features:
+ *   - Beautiful defaults (smooth lines, soft envelopes, dark/light aware)
+ *   - Synced crosshair across all charts via echarts.connect(group)
+ *   - Range zoom via dataZoom (inside + mouse wheel on all charts,
+ *     slider on the first one only to avoid clutter)
+ *   - Event-line markers (retirement / capex / crashes) via markLine
  */
 
+const ECHARTS_GROUP = "house-buy-sim";
+
+// ---- Colour palette ----
+
 const COLORS = {
-  rent:           { line: "#1F77B4", fill: "rgba(31,119,180,0.05)" },
-  buy_keep1st:    { line: "#FF7F0E", fill: "rgba(255,127,14,0.05)" },
-  buy_repay1st:   { line: "#E377C2", fill: "rgba(227,119,194,0.05)" },
-  buy_let_trig:   { line: "#2CA02C", fill: "rgba(44,160,44,0.05)" },
-  buy_let_imm:    { line: "#9467BD", fill: "rgba(148,103,189,0.05)" },
+  rent:         "#1F77B4",
+  buy_keep1st:  "#FF7F0E",
+  buy_repay1st: "#E377C2",
+  buy_let_trig: "#2CA02C",
+  buy_let_imm:  "#9467BD",
 };
 
 const STRATEGY_LABELS = {
@@ -19,7 +30,26 @@ const STRATEGY_LABELS = {
   buy_let_imm: "Buy & Rent-out",
 };
 
-// Format CHF values
+const SERIES_GROUPS = ["networth", "total_cash_out", "net_cashflow", "invest"];
+const STRATEGIES = ["_rent", "_buy", "_buy_repay_first", "_buy_let_trigger", "_buy_let_immediate"];
+const STRAT_KEYS = ["rent", "buy_keep1st", "buy_repay1st", "buy_let_trig", "buy_let_imm"];
+
+// ---- Visibility state (shared across all charts) ----
+const visibility = {
+  rent: true,
+  buy_keep1st: true,
+  buy_repay1st: true,
+  buy_let_trig: true,
+  buy_let_imm: true,
+  bands: true,
+};
+
+// Remember the last rendered aggregate + events so we can re-render on toggle
+let lastAgg = null;
+let lastEvents = null;
+
+// ---- Formatting ----
+
 function fmtCHF(v) {
   if (v == null || isNaN(v)) return "\u2014";
   const sign = v < 0 ? "-" : "";
@@ -28,6 +58,34 @@ function fmtCHF(v) {
   if (abs >= 10e3) return sign + (abs / 1e3).toFixed(0) + "k";
   if (abs >= 1e3) return sign + (abs / 1e3).toFixed(1) + "k";
   return sign + abs.toFixed(0);
+}
+
+// Convert hex colour (#RRGGBB) → rgba string with alpha
+function hexToRgba(hex, alpha) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// ---- Theme-aware colours ----
+
+function isDark() {
+  return document.documentElement.dataset.theme === "dark";
+}
+
+function themeColors() {
+  const dark = isDark();
+  return {
+    text:       dark ? "#c9cdd1" : "#2c2c2c",
+    textMuted:  dark ? "#909399" : "#6b7280",
+    axisLine:   dark ? "#3e4045" : "#d1d5db",
+    split:      dark ? "#2c2d32" : "#eef0f3",
+    bg:         dark ? "#25262b" : "#ffffff",
+    tooltipBg:  dark ? "rgba(30,31,34,0.95)" : "rgba(255,255,255,0.97)",
+    tooltipBorder: dark ? "#3e4045" : "#d1d5db",
+  };
 }
 
 // ---- Derive mean/min/max arrays from a series accumulator ----
@@ -42,282 +100,611 @@ function deriveSeries(acc, T) {
       min[t] = acc.min[t];
       max[t] = acc.max[t];
     } else {
-      mean[t] = NaN;
-      min[t] = NaN;
-      max[t] = NaN;
+      mean[t] = null;
+      min[t] = null;
+      max[t] = null;
     }
   }
   return { mean, min, max };
 }
 
-/**
- * Create datasets for an envelope (mean line + min/max fill band).
- */
-function envelopeDatasets(derived, key, label) {
-  const c = COLORS[key];
-  return [
-    {
-      label: `${label} (min)`,
-      data: derived.min,
-      borderWidth: 0,
-      pointRadius: 0,
-      fill: false,
-      backgroundColor: "transparent",
-    },
-    {
-      label: `${label} (max)`,
-      data: derived.max,
-      borderWidth: 0,
-      pointRadius: 0,
-      fill: "-1",
-      backgroundColor: c.fill,
-    },
-    {
-      label,
-      data: derived.mean,
-      borderColor: c.line,
-      borderWidth: 2,
-      pointRadius: 0,
-      fill: false,
-      tension: 0.1,
-    },
-  ];
+// ---- Event lines → ECharts markLine ----
+
+function eventsToMarkLine(events) {
+  if (!events || events.length === 0) return undefined;
+  const lines = [];
+  for (const ev of events) {
+    lines.push({
+      xAxis: ev.median,
+      lineStyle: { color: ev.color, width: 1.2, type: [ev.dash?.[0] || 6, ev.dash?.[1] || 3] },
+      label: ev.showLabel ? {
+        show: true,
+        formatter: ev.label,
+        color: ev.color,
+        fontSize: 9,
+        position: "insideStartTop",
+        backgroundColor: isDark() ? "rgba(37,38,43,0.85)" : "rgba(255,255,255,0.85)",
+        padding: [1, 3],
+        borderRadius: 2,
+      } : { show: false },
+    });
+  }
+  return {
+    symbol: "none",
+    silent: true,
+    animation: false,
+    data: lines,
+  };
 }
 
-const defaultOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
-  animation: false,
-  interaction: { mode: "index", intersect: false },
-  plugins: {
-    legend: {
-      display: false,
-      labels: { filter: (item) => !item.text?.includes("(min)") && !item.text?.includes("(max)") },
-    },
-    tooltip: {
-      callbacks: {
-        label: (ctx) => `${ctx.dataset.label}: ${fmtCHF(ctx.parsed.y)}`,
-      },
-    },
-  },
-  scales: {
-    x: { title: { display: true, text: "Year" }, ticks: { maxTicksLimit: 15 } },
-    y: {
-      title: { display: true, text: "CHF" },
-      ticks: { callback: (v) => fmtCHF(v) },
-    },
-  },
-};
-
-// ---- Event lines — custom plugin (no external dependency) ----
-
-const eventLinesPlugin = {
-  id: "eventLines",
-  afterDraw(chart) {
-    const events = chart.options.plugins?.eventLines;
-    if (!events?.length) return;
-    const { ctx, chartArea: { top, bottom, left, right }, scales } = chart;
-    const xScale = scales.x;
-    if (!xScale) return;
-
-    ctx.save();
-    // Clip to chart area so lines don't bleed into axes
-    ctx.beginPath();
-    ctx.rect(left, top, right - left, bottom - top);
-    ctx.clip();
-
-    // Draw bands first (behind lines)
-    for (const ev of events) {
-      if (ev.max > ev.min) {
-        const x1 = xScale.getPixelForValue(ev.min);
-        const x2 = xScale.getPixelForValue(ev.max);
-        ctx.fillStyle = ev.color + "18";
-        ctx.fillRect(x1, top, x2 - x1, bottom - top);
-      }
+function eventsToMarkArea(events) {
+  if (!events || events.length === 0) return undefined;
+  const areas = [];
+  for (const ev of events) {
+    if (ev.max > ev.min) {
+      areas.push([
+        { xAxis: ev.min, itemStyle: { color: hexToRgba(ev.color, 0.08) } },
+        { xAxis: ev.max },
+      ]);
     }
-
-    // Draw lines
-    for (const ev of events) {
-      const x = xScale.getPixelForValue(ev.median);
-      ctx.beginPath();
-      ctx.strokeStyle = ev.color;
-      ctx.lineWidth = 1.2;
-      ctx.setLineDash(ev.dash);
-      ctx.moveTo(x, top);
-      ctx.lineTo(x, bottom);
-      ctx.stroke();
-    }
-    ctx.setLineDash([]);
-
-    // Draw labels — only on first occurrence of each event type, staggered by type
-    ctx.font = "9px -apple-system, BlinkMacSystemFont, sans-serif";
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    const ROW_H = 13;
-    // Count row per unique color (label row = color index % 4)
-    const colorRowMap = {};
-    let colorIdx = 0;
-    events.forEach((ev) => {
-      if (ev.showLabel && !(ev.color in colorRowMap)) {
-        colorRowMap[ev.color] = colorIdx++ % 4;
-      }
-    });
-    events.forEach((ev) => {
-      if (!ev.showLabel) return;
-      const x = xScale.getPixelForValue(ev.median);
-      const row = colorRowMap[ev.color] ?? 0;
-      const yOff = top + 3 + row * ROW_H;
-      const labelW = ctx.measureText(ev.label).width;
-      ctx.fillStyle = "rgba(255,255,255,0.85)";
-      ctx.fillRect(x + 2, yOff - 1, labelW + 4, 11);
-      ctx.fillStyle = ev.color;
-      ctx.fillText(ev.label, x + 4, yOff);
-    });
-
-    ctx.restore();
-  },
-};
-
-Chart.register(eventLinesPlugin);
-
-function mergeOptions(override, events) {
+  }
+  if (areas.length === 0) return undefined;
   return {
-    ...defaultOptions,
-    plugins: {
-      ...defaultOptions.plugins,
-      ...override?.plugins,
-      eventLines: events || [],
+    silent: true,
+    animation: false,
+    data: areas,
+  };
+}
+
+// ---- Default chart options ----
+
+function baseOption(events) {
+  const tc = themeColors();
+  const mkLine = eventsToMarkLine(events);
+  const mkArea = eventsToMarkArea(events);
+  return {
+    tc,            // stash for later reference
+    mkLine,
+    mkArea,
+    _events: events,
+  };
+}
+
+function gridOption(withSlider) {
+  return {
+    left: 58,
+    right: 18,
+    top: 16,
+    bottom: withSlider ? 64 : 38,
+    containLabel: false,
+  };
+}
+
+function axisCommon(tc) {
+  return {
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: tc.axisLine } },
+      axisTick: { show: false },
+      axisLabel: { color: tc.textMuted, fontSize: 11 },
+      splitLine: { show: false },
     },
-    scales: {
-      x: { ...defaultOptions.scales.x, ...override?.scales?.x },
-      y: { ...defaultOptions.scales.y, ...override?.scales?.y },
+    yAxis: {
+      type: "value",
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: tc.textMuted, fontSize: 11, formatter: (v) => fmtCHF(v) },
+      splitLine: { lineStyle: { color: tc.split, type: "dashed" } },
     },
   };
 }
 
-// ---- Chart instances ----
+function tooltipCommon(tc) {
+  return {
+    trigger: "axis",
+    axisPointer: {
+      type: "line",
+      lineStyle: { color: tc.textMuted, width: 1, type: "dashed" },
+      label: {
+        backgroundColor: tc.tooltipBorder,
+        color: tc.text,
+        fontSize: 11,
+      },
+    },
+    backgroundColor: tc.tooltipBg,
+    borderColor: tc.tooltipBorder,
+    borderWidth: 1,
+    padding: [8, 10],
+    textStyle: { color: tc.text, fontSize: 11 },
+    extraCssText: "box-shadow: 0 4px 12px rgba(0,0,0,0.12); max-width: 320px;",
+    confine: true,
+    formatter: (params) => {
+      if (!params || !params.length) return "";
+      const year = params[0].axisValueLabel ?? params[0].axisValue;
+      // Keep only the "mean" series (drop envelope bands and markLine entries)
+      const rows = params
+        .filter((p) => !p.seriesName?.endsWith("__band") && p.value != null && p.componentType !== "markLine")
+        .map((p) => {
+          const colour = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:6px;"></span>`;
+          return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span>${colour}${p.seriesName}</span><b style="margin-left:8px;">${fmtCHF(p.value)}</b></div>`;
+        })
+        .join("");
+      return `<div style="font-weight:600;margin-bottom:4px;">Year ${year}</div>${rows}`;
+    },
+  };
+}
+
+function dataZoomCommon(withSlider) {
+  const zooms = [
+    {
+      type: "inside",
+      xAxisIndex: 0,
+      filterMode: "none",
+      zoomOnMouseWheel: true,
+      moveOnMouseMove: "shift",
+      moveOnMouseWheel: false,
+    },
+  ];
+  if (withSlider) {
+    zooms.push({
+      type: "slider",
+      xAxisIndex: 0,
+      height: 18,
+      bottom: 6,
+      borderColor: "transparent",
+      backgroundColor: isDark() ? "rgba(55,56,60,0.3)" : "rgba(240,242,245,0.6)",
+      fillerColor: isDark() ? "rgba(76,139,245,0.2)" : "rgba(59,130,246,0.15)",
+      handleStyle: { color: isDark() ? "#4c8bf5" : "#3b82f6" },
+      moveHandleStyle: { color: isDark() ? "#4c8bf5" : "#3b82f6" },
+      showDetail: false,
+      dataBackground: {
+        lineStyle: { color: isDark() ? "#3e4045" : "#d1d5db", width: 1 },
+        areaStyle: { color: isDark() ? "rgba(76,139,245,0.08)" : "rgba(59,130,246,0.06)" },
+      },
+      textStyle: { color: themeColors().textMuted, fontSize: 10 },
+    });
+  }
+  return zooms;
+}
+
+// ---- Envelope series builder ----
+
+// To draw a filled min/max band we use the stack trick:
+//   series1 = min          (transparent line, invisibly holds the base)
+//   series2 = max - min    (area filled, stacked on series1)
+//   series3 = mean         (solid line on top)
+// Additional solo min & max dashed border lines give the envelope a crisp edge.
+function envelopeSeries(derived, key, label) {
+  const colour = COLORS[key];
+  const showBands = visibility.bands;
+
+  const bandMin = derived.min.map((v, i) => (v == null || derived.max[i] == null ? null : v));
+  const bandMax = derived.max.map((v, i) => (v == null || derived.min[i] == null ? null : v));
+  const bandDiff = derived.min.map((v, i) => {
+    if (v == null || derived.max[i] == null) return null;
+    return derived.max[i] - v;
+  });
+
+  const out = [];
+
+  if (showBands) {
+    // 1) transparent baseline at min (for stacking)
+    out.push({
+      name: label + "__band",
+      type: "line",
+      data: bandMin,
+      stack: "band-" + key,
+      lineStyle: { opacity: 0 },
+      symbol: "none",
+      showSymbol: false,
+      silent: true,
+      tooltip: { show: false },
+      z: 1,
+    });
+    // 2) filled band (max - min)
+    out.push({
+      name: label + "__band",
+      type: "line",
+      data: bandDiff,
+      stack: "band-" + key,
+      lineStyle: { opacity: 0 },
+      areaStyle: { color: hexToRgba(colour, 0.18), opacity: 1 },
+      symbol: "none",
+      showSymbol: false,
+      silent: true,
+      tooltip: { show: false },
+      smooth: 0.25,
+      z: 1,
+    });
+    // 3) dashed min edge
+    out.push({
+      name: label + "__band",
+      type: "line",
+      data: bandMin,
+      lineStyle: { color: hexToRgba(colour, 0.55), width: 1, type: [3, 3] },
+      symbol: "none",
+      showSymbol: false,
+      silent: true,
+      tooltip: { show: false },
+      smooth: 0.25,
+      z: 2,
+    });
+    // 4) dashed max edge
+    out.push({
+      name: label + "__band",
+      type: "line",
+      data: bandMax,
+      lineStyle: { color: hexToRgba(colour, 0.55), width: 1, type: [3, 3] },
+      symbol: "none",
+      showSymbol: false,
+      silent: true,
+      tooltip: { show: false },
+      smooth: 0.25,
+      z: 2,
+    });
+  }
+
+  // 5) mean line on top (always shown for enabled strategies)
+  out.push({
+    name: label,
+    type: "line",
+    data: derived.mean,
+    lineStyle: { color: colour, width: 2.4 },
+    itemStyle: { color: colour },
+    symbol: "circle",
+    symbolSize: 0,
+    showSymbol: false,
+    emphasis: { focus: "series", lineStyle: { width: 3 } },
+    smooth: 0.25,
+    z: 3,
+  });
+
+  return out;
+}
+
+// ---- Chart registry ----
 
 const charts = {};
 
-function getOrCreate(canvasId, config) {
-  if (charts[canvasId]) {
-    charts[canvasId].destroy();
-  }
-  const ctx = document.getElementById(canvasId)?.getContext("2d");
-  if (!ctx) return null;
-  charts[canvasId] = new Chart(ctx, config);
-  return charts[canvasId];
+function getOrCreate(canvasId) {
+  if (charts[canvasId]) return charts[canvasId];
+  const el = document.getElementById(canvasId);
+  if (!el) return null;
+  const inst = echarts.init(el, null, { renderer: "canvas" });
+  inst.group = ECHARTS_GROUP;
+  charts[canvasId] = inst;
+  return inst;
 }
 
-// ---- Chart builders from aggregate ----
+function applyMarkers(series, mkLine, mkArea) {
+  // Attach markLine/markArea to the first visible series so they render once
+  if (!series || series.length === 0) return series;
+  let attached = false;
+  for (const s of series) {
+    if (s.silent || s.tooltip?.show === false) continue;
+    s.markLine = mkLine;
+    s.markArea = mkArea;
+    attached = true;
+    break;
+  }
+  if (!attached) {
+    series[0].markLine = mkLine;
+    series[0].markArea = mkArea;
+  }
+  return series;
+}
 
-const SERIES_GROUPS = ["networth", "total_cash_out", "net_cashflow", "invest"];
-const STRATEGIES = ["_rent", "_buy", "_buy_repay_first", "_buy_let_trigger", "_buy_let_immediate"];
-const STRAT_KEYS = ["rent", "buy_keep1st", "buy_repay1st", "buy_let_trig", "buy_let_imm"];
+// ---- Envelope chart (networth / cashout / cashflow / liquidity) ----
 
-function envelopeChart(canvasId, agg, group, yLabel, events) {
+function envelopeChart(canvasId, agg, group, yLabel, events, withSlider) {
   const T = agg.T;
-  const years = Array.from({ length: T + 1 }, (_, i) => i);
-  const datasets = [];
+  const years = Array.from({ length: T + 1 }, (_, i) => String(i));
+  const allSeries = [];
   STRATEGIES.forEach((strat, si) => {
+    const key = STRAT_KEYS[si];
+    if (!visibility[key]) return; // strategy toggled off
     const acc = agg.seriesData[group + strat];
     if (!acc) return;
     const derived = deriveSeries(acc, T);
-    datasets.push(...envelopeDatasets(derived, STRAT_KEYS[si], STRATEGY_LABELS[STRAT_KEYS[si]]));
+    allSeries.push(...envelopeSeries(derived, key, STRATEGY_LABELS[key]));
   });
-  return getOrCreate(canvasId, {
-    type: "line",
-    data: { labels: years, datasets },
-    options: mergeOptions({ scales: { y: { title: { text: yLabel } } } }, events),
-  });
+
+  const tc = themeColors();
+  const mkLine = eventsToMarkLine(events);
+  const mkArea = eventsToMarkArea(events);
+  applyMarkers(allSeries, mkLine, mkArea);
+
+  const axes = axisCommon(tc);
+  axes.xAxis.data = years;
+  axes.yAxis.name = yLabel;
+  axes.yAxis.nameLocation = "middle";
+  axes.yAxis.nameGap = 45;
+  axes.yAxis.nameTextStyle = { color: tc.textMuted, fontSize: 11 };
+
+  const option = {
+    animation: true,
+    animationDuration: 300,
+    grid: gridOption(withSlider),
+    tooltip: tooltipCommon(tc),
+    xAxis: axes.xAxis,
+    yAxis: axes.yAxis,
+    dataZoom: dataZoomCommon(withSlider),
+    series: allSeries,
+  };
+
+  const inst = getOrCreate(canvasId);
+  if (inst) inst.setOption(option, { notMerge: true });
+  return inst;
 }
 
 // ---- Public API ----
 
-/**
- * Render all charts from aggregated sweep stats.
- * @param {Object} agg - merged aggregate from sweep workers
- */
 export function renderAllCharts(agg, events) {
   if (!agg) return;
+  lastAgg = agg;
+  lastEvents = events;
 
-  envelopeChart("chart-networth", agg, "networth", "Net Worth (CHF)", events);
-  envelopeChart("chart-cashout", agg, "total_cash_out", "Annual Outflow (CHF)", events);
-  envelopeChart("chart-cashflow", agg, "net_cashflow", "Net Cash Flow (CHF)", events);
-  envelopeChart("chart-liquidity", agg, "invest", "Liquid Assets (CHF)", events);
+  envelopeChart("chart-networth",  agg, "networth",       "Net Worth (CHF)",       events, true);
+  envelopeChart("chart-cashout",   agg, "total_cash_out", "Annual Outflow (CHF)",  events, false);
+  envelopeChart("chart-cashflow",  agg, "net_cashflow",   "Net Cash Flow (CHF)",   events, false);
+  envelopeChart("chart-liquidity", agg, "invest",         "Liquid Assets (CHF)",   events, false);
 
   renderDeltaChart(agg, events);
   renderDeltaChangeChart(agg, events);
   renderWinShareChart(agg, events);
   renderHistogram(agg);
+
+  // Connect all charts in the group so tooltip & dataZoom sync
+  echarts.connect(ECHARTS_GROUP);
+}
+
+// ---- Toggle API (called from app.js on legend clicks) ----
+
+// Re-render only the four envelope charts (delta/winshare/histogram don't depend
+// on strategy visibility). Preserves current dataZoom state on each chart.
+function rerenderEnvelopes() {
+  if (!lastAgg) return;
+  const zoomState = {};
+  const ids = ["chart-networth", "chart-cashout", "chart-cashflow", "chart-liquidity"];
+  for (const id of ids) {
+    const inst = charts[id];
+    if (!inst) continue;
+    const opt = inst.getOption();
+    if (opt.dataZoom && opt.dataZoom.length) {
+      zoomState[id] = { start: opt.dataZoom[0].start, end: opt.dataZoom[0].end };
+    }
+  }
+
+  envelopeChart("chart-networth",  lastAgg, "networth",       "Net Worth (CHF)",       lastEvents, true);
+  envelopeChart("chart-cashout",   lastAgg, "total_cash_out", "Annual Outflow (CHF)",  lastEvents, false);
+  envelopeChart("chart-cashflow",  lastAgg, "net_cashflow",   "Net Cash Flow (CHF)",   lastEvents, false);
+  envelopeChart("chart-liquidity", lastAgg, "invest",         "Liquid Assets (CHF)",   lastEvents, false);
+
+  // Restore zoom so user's range selection isn't lost on toggle
+  for (const id of ids) {
+    if (!zoomState[id]) continue;
+    const inst = charts[id];
+    if (!inst) continue;
+    inst.dispatchAction({
+      type: "dataZoom",
+      start: zoomState[id].start,
+      end: zoomState[id].end,
+    });
+  }
+
+  echarts.connect(ECHARTS_GROUP);
+}
+
+export function setStrategyEnabled(key, enabled) {
+  if (!(key in visibility)) return;
+  visibility[key] = !!enabled;
+  rerenderEnvelopes();
+}
+
+export function setBandsEnabled(enabled) {
+  visibility.bands = !!enabled;
+  rerenderEnvelopes();
+}
+
+export function getVisibility() {
+  return { ...visibility };
 }
 
 function renderDeltaChart(agg, events) {
   const T = agg.T;
-  const years = Array.from({ length: T + 1 }, (_, i) => i);
+  const years = Array.from({ length: T + 1 }, (_, i) => String(i));
   const delta = deriveSeries(agg.deltaAcc, T);
-  getOrCreate("chart-delta", {
-    type: "line",
-    data: {
-      labels: years,
-      datasets: [
-        { label: "Min", data: delta.min, borderWidth: 0, pointRadius: 0, fill: false, hidden: true },
-        { label: "Max", data: delta.max, borderWidth: 0, pointRadius: 0, fill: "-1", backgroundColor: "rgba(255,127,14,0.15)", hidden: true },
-        { label: "Buy\u2212Rent Delta", data: delta.mean, borderColor: "#FF7F0E", borderWidth: 2, pointRadius: 0, fill: false },
-        { label: "Zero", data: new Array(T + 1).fill(0), borderColor: "#888", borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false },
-      ],
+  const tc = themeColors();
+
+  const series = [
+    {
+      name: "Min",
+      type: "line",
+      data: delta.min,
+      stack: "delta-band",
+      lineStyle: { opacity: 0 },
+      symbol: "none",
+      silent: true,
+      tooltip: { show: false },
+      z: 1,
     },
-    options: mergeOptions({ scales: { y: { title: { text: "Delta (CHF)" } } } }, events),
-  });
+    {
+      name: "Max\u2212Min",
+      type: "line",
+      data: delta.min.map((v, i) => (v == null || delta.max[i] == null ? null : delta.max[i] - v)),
+      stack: "delta-band",
+      lineStyle: { opacity: 0 },
+      areaStyle: { color: hexToRgba("#FF7F0E", 0.1) },
+      symbol: "none",
+      silent: true,
+      tooltip: { show: false },
+      z: 1,
+    },
+    {
+      name: "Buy\u2212Rent Delta",
+      type: "line",
+      data: delta.mean,
+      lineStyle: { color: "#FF7F0E", width: 2.2 },
+      itemStyle: { color: "#FF7F0E" },
+      smooth: 0.25,
+      symbol: "none",
+      showSymbol: false,
+      z: 3,
+      markLine: {
+        symbol: "none",
+        silent: true,
+        data: [{ yAxis: 0, lineStyle: { color: tc.textMuted, type: "dashed", width: 1 } }],
+      },
+    },
+  ];
+
+  const mkLine = eventsToMarkLine(events);
+  const mkArea = eventsToMarkArea(events);
+  // Attach events to the first silent series so they show behind the line
+  if (mkLine) series[0].markLine = mkLine;
+  if (mkArea) series[0].markArea = mkArea;
+
+  const axes = axisCommon(tc);
+  axes.xAxis.data = years;
+  axes.yAxis.name = "Delta (CHF)";
+  axes.yAxis.nameLocation = "middle";
+  axes.yAxis.nameGap = 45;
+
+  const inst = getOrCreate("chart-delta");
+  if (!inst) return;
+  inst.setOption({
+    animation: true,
+    animationDuration: 300,
+    grid: gridOption(false),
+    tooltip: tooltipCommon(tc),
+    xAxis: axes.xAxis,
+    yAxis: axes.yAxis,
+    dataZoom: dataZoomCommon(false),
+    series,
+  }, { notMerge: true });
 }
 
 function renderDeltaChangeChart(agg, events) {
   const T = agg.T;
-  const years = Array.from({ length: T + 1 }, (_, i) => i);
+  const years = Array.from({ length: T + 1 }, (_, i) => String(i));
   const delta = deriveSeries(agg.deltaAcc, T);
-  // Year-over-year change in the buy-rent gap (first difference)
-  const change = delta.mean.map((v, t) => (t === 0 ? 0 : v - delta.mean[t - 1]));
-  getOrCreate("chart-cumulative", {
-    type: "bar",
-    data: {
-      labels: years,
-      datasets: [
-        {
-          label: "Annual \u0394 Change",
-          data: change,
-          backgroundColor: change.map((v) => (v >= 0 ? "rgba(44,160,44,0.6)" : "rgba(214,39,40,0.6)")),
-          borderWidth: 0,
+  const change = delta.mean.map((v, t) => (t === 0 || v == null || delta.mean[t - 1] == null ? 0 : v - delta.mean[t - 1]));
+  const tc = themeColors();
+
+  const series = [
+    {
+      name: "Annual \u0394 Change",
+      type: "bar",
+      data: change.map((v) => ({
+        value: v,
+        itemStyle: {
+          color: v >= 0 ? "rgba(44,160,44,0.75)" : "rgba(214,39,40,0.75)",
+          borderRadius: [3, 3, 0, 0],
         },
-        { label: "Zero", data: new Array(T + 1).fill(0), type: "line", borderColor: "#888", borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false },
-      ],
+      })),
+      barMaxWidth: 14,
     },
-    options: mergeOptions({ scales: { y: { title: { text: "YoY Gap Change (CHF)" } } } }, events),
-  });
+  ];
+
+  const mkLine = eventsToMarkLine(events);
+  const mkArea = eventsToMarkArea(events);
+  if (mkLine) series[0].markLine = mkLine;
+  if (mkArea) series[0].markArea = mkArea;
+
+  const axes = axisCommon(tc);
+  axes.xAxis.data = years;
+  axes.yAxis.name = "YoY Gap Change (CHF)";
+  axes.yAxis.nameLocation = "middle";
+  axes.yAxis.nameGap = 45;
+
+  const inst = getOrCreate("chart-cumulative");
+  if (!inst) return;
+  inst.setOption({
+    animation: true,
+    animationDuration: 300,
+    grid: gridOption(false),
+    tooltip: tooltipCommon(tc),
+    xAxis: axes.xAxis,
+    yAxis: axes.yAxis,
+    dataZoom: dataZoomCommon(false),
+    series,
+  }, { notMerge: true });
 }
 
 function renderWinShareChart(agg, events) {
   const T = agg.T;
+  const years = Array.from({ length: T + 1 }, (_, i) => String(i));
   const n = agg.totalCount;
-  const years = Array.from({ length: T + 1 }, (_, i) => i);
-  const buyWinPct = years.map((t) => (agg.buyWinCount[t] / n) * 100);
-  getOrCreate("chart-winshare", {
-    type: "line",
-    data: {
-      labels: years,
-      datasets: [
-        { label: "Buy Win %", data: buyWinPct, borderColor: "#FF7F0E", borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: "rgba(255,127,14,0.1)" },
-        { label: "50%", data: new Array(T + 1).fill(50), borderColor: "#888", borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false },
-      ],
-    },
-    options: mergeOptions({
-      scales: {
-        y: { title: { text: "Buy Win %" }, min: 0, max: 100, ticks: { callback: (v) => v + "%" } },
+  const buyWinPct = years.map((_, t) => (agg.buyWinCount[t] / n) * 100);
+  const tc = themeColors();
+
+  const series = [
+    {
+      name: "Buy Win %",
+      type: "line",
+      data: buyWinPct,
+      lineStyle: { color: "#FF7F0E", width: 2.2 },
+      itemStyle: { color: "#FF7F0E" },
+      areaStyle: { color: hexToRgba("#FF7F0E", 0.12) },
+      symbol: "none",
+      showSymbol: false,
+      smooth: 0.25,
+      z: 3,
+      markLine: {
+        symbol: "none",
+        silent: true,
+        data: [{ yAxis: 50, lineStyle: { color: tc.textMuted, type: "dashed", width: 1 } }],
       },
-    }, events),
-  });
+    },
+  ];
+
+  const mkLine = eventsToMarkLine(events);
+  const mkArea = eventsToMarkArea(events);
+  // Chain event markLines into the existing one if present
+  if (mkLine) {
+    const existing = series[0].markLine.data;
+    series[0].markLine = {
+      symbol: "none",
+      silent: true,
+      animation: false,
+      data: existing.concat(mkLine.data),
+    };
+  }
+  if (mkArea) series[0].markArea = mkArea;
+
+  const axes = axisCommon(tc);
+  axes.xAxis.data = years;
+  axes.yAxis.name = "Buy Win %";
+  axes.yAxis.min = 0;
+  axes.yAxis.max = 100;
+  axes.yAxis.axisLabel = { ...axes.yAxis.axisLabel, formatter: "{value}%" };
+  axes.yAxis.nameLocation = "middle";
+  axes.yAxis.nameGap = 45;
+
+  const inst = getOrCreate("chart-winshare");
+  if (!inst) return;
+  inst.setOption({
+    animation: true,
+    animationDuration: 300,
+    grid: gridOption(false),
+    tooltip: {
+      ...tooltipCommon(tc),
+      formatter: (params) => {
+        const p = params.find((x) => x.seriesName === "Buy Win %");
+        if (!p) return "";
+        return `<div style="font-weight:600;margin-bottom:4px;">Year ${p.axisValueLabel ?? p.axisValue}</div>Buy Win: <b>${p.value.toFixed(1)}%</b>`;
+      },
+    },
+    xAxis: axes.xAxis,
+    yAxis: axes.yAxis,
+    dataZoom: dataZoomCommon(false),
+    series,
+  }, { notMerge: true });
 }
 
 function renderHistogram(agg) {
+  const tc = themeColors();
   const nBins = agg.histBins.length;
   const binLabels = [];
   for (let i = 0; i < nBins; i++) {
@@ -325,31 +712,65 @@ function renderHistogram(agg) {
     binLabels.push(fmtCHF(mid));
   }
 
-  getOrCreate("chart-histogram", {
-    type: "bar",
-    data: {
-      labels: binLabels,
-      datasets: [{
-        label: "Count",
-        data: Array.from(agg.histBins),
-        backgroundColor: agg.histBins.map((_, i) => {
-          const mid = agg.histMin + (i + 0.5) * agg.histBinWidth;
-          return mid >= 0 ? "rgba(255,127,14,0.6)" : "rgba(31,119,180,0.6)";
-        }),
-        borderWidth: 0,
-      }],
+  const series = [
+    {
+      name: "Count",
+      type: "bar",
+      data: Array.from(agg.histBins).map((count, i) => {
+        const mid = agg.histMin + (i + 0.5) * agg.histBinWidth;
+        return {
+          value: count,
+          itemStyle: {
+            color: mid >= 0 ? "rgba(255,127,14,0.78)" : "rgba(31,119,180,0.78)",
+            borderRadius: [3, 3, 0, 0],
+          },
+        };
+      }),
+      barCategoryGap: "10%",
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      animation: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { title: { display: true, text: "End Delta (Buy\u2212Rent, CHF)" }, ticks: { maxTicksLimit: 10 } },
-        y: { title: { display: true, text: "# Scenarios" } },
+  ];
+
+  const inst = getOrCreate("chart-histogram");
+  if (!inst) return;
+
+  // The histogram is NOT in the connected group (different x-axis semantics)
+  inst.group = "";
+
+  inst.setOption({
+    animation: true,
+    animationDuration: 300,
+    grid: { left: 58, right: 18, top: 16, bottom: 40, containLabel: false },
+    tooltip: {
+      ...tooltipCommon(tc),
+      formatter: (params) => {
+        const p = params[0];
+        return `<div style="font-weight:600;margin-bottom:4px;">${p.name}</div>Count: <b>${p.value}</b>`;
       },
     },
-  });
+    xAxis: {
+      type: "category",
+      data: binLabels,
+      axisLine: { lineStyle: { color: tc.axisLine } },
+      axisTick: { show: false },
+      axisLabel: { color: tc.textMuted, fontSize: 10, rotate: 30, interval: Math.max(0, Math.floor(nBins / 10) - 1) },
+      name: "End Delta (Buy\u2212Rent)",
+      nameLocation: "middle",
+      nameGap: 28,
+      nameTextStyle: { color: tc.textMuted, fontSize: 11 },
+    },
+    yAxis: {
+      type: "value",
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: tc.textMuted, fontSize: 11 },
+      splitLine: { lineStyle: { color: tc.split, type: "dashed" } },
+      name: "# Scenarios",
+      nameLocation: "middle",
+      nameGap: 45,
+      nameTextStyle: { color: tc.textMuted, fontSize: 11 },
+    },
+    series,
+  }, { notMerge: true });
 }
 
 export function renderSummary(agg) {
@@ -385,17 +806,36 @@ export function renderSummary(agg) {
 }
 
 export function downloadChart(canvasId) {
-  const chart = charts[canvasId];
-  if (!chart) return;
+  const inst = charts[canvasId];
+  if (!inst) return;
+  const url = inst.getDataURL({
+    type: "png",
+    pixelRatio: 2,
+    backgroundColor: themeColors().bg,
+  });
   const link = document.createElement("a");
   link.download = canvasId + ".png";
-  link.href = chart.toBase64Image("image/png", 1);
+  link.href = url;
   link.click();
 }
 
 export function destroyAllCharts() {
-  for (const [id, chart] of Object.entries(charts)) {
-    chart.destroy();
+  for (const [id, inst] of Object.entries(charts)) {
+    inst.dispose();
     delete charts[id];
   }
 }
+
+// ---- Resize handling ----
+
+let resizeHandlerRegistered = false;
+function registerResize() {
+  if (resizeHandlerRegistered) return;
+  resizeHandlerRegistered = true;
+  window.addEventListener("resize", () => {
+    for (const inst of Object.values(charts)) {
+      try { inst.resize(); } catch (_) { /* ignore */ }
+    }
+  });
+}
+registerResize();
