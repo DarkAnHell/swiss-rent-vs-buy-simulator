@@ -78,7 +78,8 @@ const TOOLTIPS = {
   upfront_mortgage_fees:          "One-time fees at mortgage origination (notary, land register, etc.). CHF.",
 
   // Taxes
-  imputed_rent_pct:          "Swiss imputed rent (Eigenmietwert) as % of market rent added to taxable income. Canton-specific; typically 60–70%. Auto-set by canton preset.",
+  imputed_rent_pct:                "Swiss imputed rent (Eigenmietwert) as % of market rent added to taxable income. Canton-specific; typically 60–70%. Auto-set by canton preset.",
+  imputed_rent_abolition_year:     "Year of simulation at which the Eigenmietwert (imputed rental value) is abolished. When removed, imputed rent income, mortgage interest deduction, and maintenance deduction all go to zero simultaneously (the reform removes both the tax and the deductions together). Set to 9999 to keep it for the entire horizon. E.g. set to 5 if you expect the reform in ~5 years.",
   marginal_tax_rate:         "Your marginal income tax rate (federal + cantonal + municipal combined). Decimal. Used for mortgage interest shield and imputed rent.",
   cap_gains_tax_rate_base:   "Starting capital gains tax rate before holding-period discounts. Auto-set by canton preset. Decimal.",
   cap_gains_tax:             "Override: flat capital gains tax in CHF. Set to 0 to let the model compute from rate × schedule.",
@@ -111,7 +112,7 @@ const TOOLTIPS = {
   capex_first_year:          "Year of simulation at which the first capex event occurs.",
 
   // Equity
-  cash_downpayment: "Cash equity from liquid assets for the down payment. CHF. Swiss minimum: 10% of purchase price from own funds (not Pillar 2).",
+  cash_downpayment: "Cash from your own savings (bank account, investments) for the down payment. CHF. Does NOT include Pillar 2 or 3a withdrawals — those are entered separately below. Swiss minimum: 10% of purchase price must come from own funds (not Pillar 2).",
   pillar2_used:     "Pillar 2 capital withdrawn or pledged for the down payment. CHF. Reduces your P2 balance and future retirement income.",
   family_help:      "Gift or interest-free loan from family contributing to equity. CHF.",
 
@@ -284,15 +285,19 @@ function populateUI(config, forceValues = false) {
 
 /**
  * Apply canton profile overrides to the UI.
- * Locked fields are forced to fixed mode, made readonly, and visually grayed out.
+ * Locked fields are forced to fixed mode with an Override button.
+ * Clicking Override removes the lock but shows a warning.
  */
 function applyCanton(code) {
   // Unlock and restore defaults for any previously canton-locked rows
   document.querySelectorAll(".param-row[data-canton-locked]").forEach((row) => {
     const key = row.dataset.param;
     row.removeAttribute("data-canton-locked");
+    row.removeAttribute("data-canton-overridden");
     const input = row.querySelector('.fixed-input input[data-field="value"]');
     if (input) input.removeAttribute("readonly");
+    // Remove any injected override buttons / warnings
+    row.querySelectorAll(".canton-override-btn, .canton-override-warning").forEach((el) => el.remove());
     // Restore the DEFAULT_CONFIG value for this param (may be a range)
     if (key && DEFAULT_CONFIG[key] !== undefined) {
       populateUI({ [key]: DEFAULT_CONFIG[key] }, false);
@@ -323,6 +328,29 @@ function applyCanton(code) {
         input.setAttribute("readonly", "");
       }
       row.dataset.cantonLocked = "true";
+
+      // Add "Override" button next to the param label
+      const labelEl = row.querySelector(".param-label");
+      if (labelEl && !row.querySelector(".canton-override-btn")) {
+        const overrideBtn = document.createElement("button");
+        overrideBtn.className = "canton-override-btn";
+        overrideBtn.type = "button";
+        overrideBtn.textContent = "Override";
+        overrideBtn.title = "This value is set by the canton preset. Only change it if you know what you are doing.";
+        overrideBtn.addEventListener("click", () => {
+          // Unlock this field
+          if (input) input.removeAttribute("readonly");
+          row.dataset.cantonOverridden = "true";
+          overrideBtn.remove();
+          // Insert a persistent warning below the input
+          const warning = document.createElement("span");
+          warning.className = "canton-override-warning";
+          warning.textContent = "⚠ You are overriding a canton-set value. Only do this if you know what you are doing.";
+          fixedGroup?.appendChild(warning);
+          input?.focus();
+        });
+        labelEl.after(overrideBtn);
+      }
     }
   }
 

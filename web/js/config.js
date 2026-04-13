@@ -318,6 +318,7 @@ export const DEFAULT_CONFIG = {
 
   // taxes
   imputed_rent_pct: choices(0.60, 0.70),
+  imputed_rent_abolition_year: 9999,
   marginal_tax_rate: choices(0.20, 0.30),
   cap_gains_tax_rate_base: 0.0,
   cap_gains_schedule_key: "",

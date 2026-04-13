@@ -653,16 +653,34 @@ export function simulate(p) {
   const taxable_imputed_r1 = new Float64Array(N);
   const tax_impact_r1 = new Float64Array(N);
 
-  for (let t = 0; t < N; t++) {
-    imputed_rent[t] = p.imputed_rent_pct * rent_annual_gross[t];
-    maintenance_deduction[t] = Math.max(maintenance[t], imputed_rent[t] * p.maintenance_deduction_pct_of_imputed);
-    interest_deduction[t] = interest_arr[t] * p.mortgage_interest_deductible_pct;
-    taxable_imputed[t] = imputed_rent[t] - interest_deduction[t] - maintenance_deduction[t] - capex_arr[t];
-    tax_impact[t] = taxable_imputed[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+  // Eigenmietwert abolition: once removed, imputed rent income AND all related
+  // deductions (mortgage interest, maintenance) are zeroed together — the reform
+  // removes both sides of the ledger simultaneously.
+  const abolitionYear = p.imputed_rent_abolition_year ?? 9999;
 
-    interest_deduction_r1[t] = interest_arr_r1[t] * p.mortgage_interest_deductible_pct;
-    taxable_imputed_r1[t] = imputed_rent[t] - interest_deduction_r1[t] - maintenance_deduction[t] - capex_arr[t];
-    tax_impact_r1[t] = taxable_imputed_r1[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+  for (let t = 0; t < N; t++) {
+    if (t >= abolitionYear) {
+      // Eigenmietwert abolished: no imputed income, no deductions
+      imputed_rent[t] = 0;
+      maintenance_deduction[t] = 0;
+      interest_deduction[t] = 0;
+      taxable_imputed[t] = 0;
+      tax_impact[t] = p.annual_net_tax_impact * infl[t];
+
+      interest_deduction_r1[t] = 0;
+      taxable_imputed_r1[t] = 0;
+      tax_impact_r1[t] = p.annual_net_tax_impact * infl[t];
+    } else {
+      imputed_rent[t] = p.imputed_rent_pct * rent_annual_gross[t];
+      maintenance_deduction[t] = Math.max(maintenance[t], imputed_rent[t] * p.maintenance_deduction_pct_of_imputed);
+      interest_deduction[t] = interest_arr[t] * p.mortgage_interest_deductible_pct;
+      taxable_imputed[t] = imputed_rent[t] - interest_deduction[t] - maintenance_deduction[t] - capex_arr[t];
+      tax_impact[t] = taxable_imputed[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+
+      interest_deduction_r1[t] = interest_arr_r1[t] * p.mortgage_interest_deductible_pct;
+      taxable_imputed_r1[t] = imputed_rent[t] - interest_deduction_r1[t] - maintenance_deduction[t] - capex_arr[t];
+      tax_impact_r1[t] = taxable_imputed_r1[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+    }
   }
 
   // Buy housing cash out (default vs repay-1st)

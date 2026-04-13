@@ -824,6 +824,43 @@
   pointer-events: none;
 }
 
+.canton-override-btn {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+
+.canton-override-btn:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.canton-override-warning {
+  font-size: 10px;
+  color: #d97706;
+  margin-top: 2px;
+  display: block;
+}
+
+.param-row[data-canton-overridden="true"] .fixed-input input {
+  border-color: #d97706 !important;
+  background: rgba(217, 119, 6, 0.05) !important;
+}
+
+[data-theme="dark"] .param-row[data-canton-overridden="true"] .fixed-input input {
+  background: rgba(217, 119, 6, 0.08) !important;
+}
+
 /* Hide advanced params in basic mode */
 .config-panel[data-config-mode="basic"] .param-row[data-level="advanced"] {
   display: none;
@@ -854,6 +891,13 @@
 
 .chart-card .chart-header h3 {
   margin-bottom: 0;
+}
+
+.chart-description {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  line-height: 1.45;
 }
 
 .btn-download {
