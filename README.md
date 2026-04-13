@@ -29,6 +29,7 @@ For each strategy, it tracks net worth, cash flows, liquid assets, and mortgage 
 - **Dark mode** with persistent theme toggle.
 - **Multi-language** — English, German, French, and Italian.
 - **PNG export** — download any chart as a PNG image.
+- **Privacy-first footer** — disclaimer and privacy notice confirming all data stays client-side, translated into all four languages.
 
 ## Architecture
 

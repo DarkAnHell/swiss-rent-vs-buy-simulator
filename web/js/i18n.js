@@ -176,6 +176,10 @@ const TRANSLATIONS = {
     event_capex: "Capex",
     event_stock_crash: "Stock crash",
     event_hsg_crash: "Hsg crash",
+
+    // Footer
+    footer_disclaimer: "This simulator is for informational purposes only and does not constitute financial, legal, or tax advice. Results are illustrative estimates based on the inputs you provide. The author assumes no responsibility for any financial decisions made based on this tool. Always consult a qualified financial advisor before making major investment decisions.",
+    footer_privacy: "🔒 All computations run entirely in your browser. No data is collected, transmitted, or stored on any server. Your inputs never leave your device.",
   },
 
   de: {
@@ -342,6 +346,10 @@ const TRANSLATIONS = {
     event_capex: "Renovation",
     event_stock_crash: "Aktiencrash",
     event_hsg_crash: "Immo-Crash",
+
+    // Footer
+    footer_disclaimer: "Dieser Simulator dient ausschliesslich Informationszwecken und stellt keine Finanz-, Rechts- oder Steuerberatung dar. Die Ergebnisse sind illustrative Schätzungen auf Basis der eingegebenen Werte. Der Autor übernimmt keine Verantwortung für finanzielle Entscheidungen, die auf Grundlage dieses Tools getroffen werden. Konsultieren Sie stets einen qualifizierten Finanzberater vor wichtigen Anlageentscheidungen.",
+    footer_privacy: "🔒 Alle Berechnungen laufen vollständig in Ihrem Browser. Es werden keine Daten erfasst, übertragen oder auf einem Server gespeichert. Ihre Eingaben verlassen Ihr Gerät nicht.",
   },
 
   fr: {
@@ -508,6 +516,10 @@ const TRANSLATIONS = {
     event_capex: "R\u00e9novation",
     event_stock_crash: "Crash boursier",
     event_hsg_crash: "Crash immo.",
+
+    // Footer
+    footer_disclaimer: "Ce simulateur est fourni à titre informatif uniquement et ne constitue pas un conseil financier, juridique ou fiscal. Les résultats sont des estimations illustratives basées sur les données saisies. L'auteur décline toute responsabilité quant aux décisions financières prises sur la base de cet outil. Consultez toujours un conseiller financier qualifié avant de prendre des décisions d'investissement importantes.",
+    footer_privacy: "🔒 Tous les calculs s'exécutent entièrement dans votre navigateur. Aucune donnée n'est collectée, transmise ou stockée sur un serveur. Vos saisies ne quittent jamais votre appareil.",
   },
 
   it: {
@@ -674,6 +686,10 @@ const TRANSLATIONS = {
     event_capex: "Ristrutturazione",
     event_stock_crash: "Crash azionario",
     event_hsg_crash: "Crash immo.",
+
+    // Footer
+    footer_disclaimer: "Questo simulatore è fornito a scopo puramente informativo e non costituisce una consulenza finanziaria, legale o fiscale. I risultati sono stime illustrative basate sui dati inseriti. L'autore non si assume alcuna responsabilità per decisioni finanziarie prese sulla base di questo strumento. Consultate sempre un consulente finanziario qualificato prima di prendere decisioni di investimento importanti.",
+    footer_privacy: "🔒 Tutti i calcoli vengono eseguiti interamente nel vostro browser. Nessun dato viene raccolto, trasmesso o memorizzato su alcun server. I vostri dati non lasciano mai il vostro dispositivo.",
   },
 };
 
