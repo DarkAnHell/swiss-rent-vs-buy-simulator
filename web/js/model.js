@@ -408,27 +408,107 @@ export function clampParams(p) {
 // Param validation
 // ---------------------------------------------------------------------------
 
+/**
+ * Swiss bank mortgage qualification rules (Hypothekarrichtlinien).
+ * These mirror the standard requirements applied by Swiss banks when
+ * granting a residential mortgage.
+ *
+ * Rules enforced:
+ *  1. Total equity ≥ 20 % of purchase price
+ *  2. Hard equity (non-pension: cash + family) ≥ 10 % of purchase price
+ *  3. Pillar 2 withdrawal ≤ Pillar 2 balance
+ *  4. Pillar 3a withdrawal ≤ Pillar 3a balance
+ *  5. Affordability (Tragbarkeit): imputed annual housing costs ≤ 33 % of
+ *     gross income, using a 5 % imputed interest rate, 1 % maintenance,
+ *     and linear amortisation of the 2nd mortgage
+ *  6. 2nd mortgage must be amortised by retirement (whichever is sooner:
+ *     15 years or years until retirement age)
+ */
 export function validateParams(p) {
-  const min_downpayment = 0.20 * p.purchase_price;
-  if (p.cash_downpayment < min_downpayment) {
+  const fmt = (v) => Math.round(v).toLocaleString("de-CH");
+
+  // ---- Equity checks ----
+  const p3a_used  = p.pillar3a_used  || 0;
+  const p3a_start = p.pillar3a_start || 0;
+
+  const equity_total = p.cash_downpayment + p.pillar2_used + p3a_used + p.family_help;
+  const hard_equity  = p.cash_downpayment + p.family_help;        // non-pension sources
+  const mortgage     = Math.max(0, p.purchase_price - equity_total);
+
+  // 1. Total equity ≥ 20 %
+  const min_equity = 0.20 * p.purchase_price;
+  if (equity_total < min_equity - 0.01) {
     throw new Error(
-      `Invalid financing: cash_downpayment (${p.cash_downpayment.toFixed(2)}) ` +
-      `is below 20% of purchase_price (${p.purchase_price.toFixed(2)}). ` +
-      `Minimum required: ${min_downpayment.toFixed(2)}.`
+      `Insufficient equity: total equity CHF ${fmt(equity_total)} ` +
+      `is below 20% of purchase price CHF ${fmt(p.purchase_price)}. ` +
+      `Minimum required: CHF ${fmt(min_equity)}. ` +
+      `Increase cash down payment, Pillar 2/3a withdrawal, or family help.`
     );
   }
+
+  // 2. Hard (non-pension) equity ≥ 10 %
+  const min_hard = 0.10 * p.purchase_price;
+  if (hard_equity < min_hard - 0.01) {
+    throw new Error(
+      `Insufficient hard equity: non-pension equity (cash + family) CHF ${fmt(hard_equity)} ` +
+      `is below 10% of purchase price CHF ${fmt(p.purchase_price)}. ` +
+      `Swiss banks require at least 10% from non-pension sources. ` +
+      `Minimum required: CHF ${fmt(min_hard)}.`
+    );
+  }
+
+  // 3. Pillar 2 withdrawal ≤ balance
   if (p.pillar2_used > p.pillar2_start) {
     throw new Error(
-      `Invalid 2nd pillar: pillar2_used (${p.pillar2_used.toFixed(2)}) ` +
-      `exceeds pillar2_start (${p.pillar2_start.toFixed(2)}).`
+      `Invalid 2nd pillar: withdrawal CHF ${fmt(p.pillar2_used)} ` +
+      `exceeds available balance CHF ${fmt(p.pillar2_start)}.`
     );
   }
-  const p3a_used = p.pillar3a_used || 0;
-  const p3a_start = p.pillar3a_start || 0;
+
+  // 4. Pillar 3a withdrawal ≤ balance
   if (p3a_used > p3a_start) {
     throw new Error(
-      `Invalid 3rd pillar: pillar3a_used (${p3a_used.toFixed(2)}) ` +
-      `exceeds pillar3a_start (${p3a_start.toFixed(2)}).`
+      `Invalid 3rd pillar: withdrawal CHF ${fmt(p3a_used)} ` +
+      `exceeds available balance CHF ${fmt(p3a_start)}.`
+    );
+  }
+
+  // ---- Affordability (Tragbarkeit) ----
+  // Banks use an imputed 5 % interest rate (not the actual rate) to stress-test
+  // the borrower's ability to service the debt.
+  const IMPUTED_RATE      = 0.05;   // 5 % imputed interest
+  const MAINTENANCE_RATE  = 0.01;   // 1 % of property value
+  const MAX_COST_RATIO    = 1 / 3;  // 33.3 % of gross income
+
+  const imputed_interest     = IMPUTED_RATE * mortgage;
+  const imputed_maintenance  = MAINTENANCE_RATE * p.purchase_price;
+  const second_mortgage      = Math.max(0, mortgage - 0.65 * p.purchase_price);
+  const amort_years_effective = p.amort_years > 0 ? p.amort_years : 15;
+  const imputed_amortization = second_mortgage > 0 ? second_mortgage / amort_years_effective : 0;
+  const imputed_costs        = imputed_interest + imputed_maintenance + imputed_amortization;
+  const max_affordable       = MAX_COST_RATIO * p.income_working_annual;
+
+  // 5. Imputed costs ≤ 33 % of gross income
+  if (imputed_costs > max_affordable + 0.01) {
+    throw new Error(
+      `Affordability check failed (Tragbarkeit): imputed annual housing costs ` +
+      `CHF ${fmt(imputed_costs)} exceed 33% of gross income CHF ${fmt(max_affordable)}.\n` +
+      `  • 5% imputed interest: CHF ${fmt(imputed_interest)}\n` +
+      `  • 1% maintenance:      CHF ${fmt(imputed_maintenance)}\n` +
+      `  • 2nd mortgage amort.: CHF ${fmt(imputed_amortization)}\n` +
+      `Increase income, reduce purchase price, or increase equity.`
+    );
+  }
+
+  // ---- Amortisation timeline ----
+  // 6. 2nd mortgage must be fully repaid by retirement age
+  const years_to_retirement = Math.max(0, Math.ceil(p.retirement_age - p.current_age));
+  if (second_mortgage > 0 && p.amort_years > years_to_retirement) {
+    throw new Error(
+      `Amortisation timeline invalid: the 2nd mortgage (CHF ${fmt(second_mortgage)}) ` +
+      `must be repaid within ${years_to_retirement} years (by retirement at age ${p.retirement_age}), ` +
+      `but amort_years is set to ${p.amort_years}. ` +
+      `Swiss banks require the 2nd mortgage to be fully amortised by retirement.`
     );
   }
 }

@@ -257,7 +257,7 @@ export const DEFAULT_CONFIG = {
   wealth_tax_rate: lin(0.0, 0.003, 2),
 
   // household lifecycle cash flow
-  income_working_annual: 50000.0,
+  income_working_annual: 180_000.0,
   retirement_income_annual: 2520 * 12,
   non_housing_expenses_working: 50_000.0,
   non_housing_expenses_retired: 50_000.0,

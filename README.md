@@ -21,6 +21,7 @@ For each strategy, it tracks net worth, cash flows, liquid assets, and mortgage 
 - **Deterministic grid sweep** — every combination of parameter ranges is evaluated (no random sampling). Default configuration produces 600k+ scenarios.
 - **Swiss-specific tax model** — imputed rental value (Eigenmietwert), capital gains tax schedules (Grundstückgewinnsteuer) for ZH/AR/AI/TG/SG, property transfer tax (Handänderungssteuer), Pillar 2 (BVG/LPP) mechanics, and cantonal presets for all 26 cantons.
 - **Client-side only** — simulation runs in Web Workers with streaming aggregation. No data leaves the browser.
+- **Bank qualification rules** — enforces standard Swiss mortgage requirements before running the simulation: 20% minimum equity (10% hard equity from non-pension sources), affordability stress test (Tragbarkeit) at 5% imputed interest, and amortisation-by-retirement check.
 - **Crash stress testing** — periodic stock market and housing crashes at configurable intervals and severity.
 - **8 interactive charts** — net worth, cash outflow, cash flow, liquidity, buy-vs-rent delta, annual gap change, win share percentage, and end-delta histogram. Built on Apache ECharts with synced crosshairs, linked zoom, and event-line markers for retirement, mortgage milestones, crashes, and renovations.
 - **Basic / Advanced config toggle** — beginners see only the key parameters; advanced mode exposes the full parameter set.

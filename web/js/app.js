@@ -133,7 +133,7 @@ const BASIC_PARAMS = {
   current_age:                  "e.g. 35",
   retirement_age:               "e.g. 65",
   liquid_assets:                "e.g. 100000",
-  income_working_annual:        "e.g. 120000",
+  income_working_annual:        "e.g. 180000",
   retirement_income_annual:     "e.g. 30240",
   non_housing_expenses_working: "e.g. 50000",
   non_housing_expenses_retired: "e.g. 40000",
@@ -486,6 +486,8 @@ async function runSimulation() {
   btnRun.disabled = true;
   btnRun.textContent = t("btn_running");
   progressFill.style.width = "0%";
+  progressFill.classList.remove("error");
+  progressLabel.classList.remove("error");
   progressLabel.textContent = t("status_starting");
 
   try {
@@ -510,7 +512,10 @@ async function runSimulation() {
     renderAllCharts(agg, events);
     renderSummary(agg);
   } catch (err) {
-    progressLabel.textContent = `${t("Error")}: ${err.message}`;
+    progressLabel.textContent = `${err.message}`;
+    progressLabel.classList.add("error");
+    progressFill.style.width = "100%";
+    progressFill.classList.add("error");
     console.error(err);
   } finally {
     running = false;

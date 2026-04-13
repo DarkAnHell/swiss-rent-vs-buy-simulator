@@ -456,6 +456,19 @@
 .progress-label {
   font-size: 12px;
   color: var(--color-text-muted);
+  white-space: pre-line;
+}
+
+.progress-label.error {
+  color: #dc2626;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 0;
+}
+
+.progress-bar-fill.error {
+  background: #dc2626;
 }
 
 /* ===== Chart Grid ===== */
