@@ -1095,6 +1095,26 @@
           </div>
         </div>
 
+        <div class="param-row" data-param="imputed_rent_abolition_year">
+          <div class="param-label-row">
+            <span class="param-label">Eigenmietwert Abolition (years)</span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="1" min="0" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="1" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="1" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+
       </div>
     </details>
 
@@ -1523,7 +1543,7 @@
 
         <div class="param-row" data-param="cash_downpayment">
           <div class="param-label-row">
-            <span class="param-label">Cash Down Payment</span>
+            <span class="param-label">Cash Down Payment <small style="font-weight:400;color:var(--color-text-muted)">(excl. Pillar 2/3a)</small></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1824,6 +1844,7 @@
           <h3 data-i18n="chart_networth">Net Worth Over Time</h3>
           <button class="btn-download" data-chart="chart-networth" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Total wealth per strategy — investments, pillar balances, and home equity minus mortgage. The main lens for comparing long-term outcomes.</p>
         <div class="chart-canvas" id="chart-networth"></div>
       </div>
       <div class="chart-card">
@@ -1831,6 +1852,7 @@
           <h3 data-i18n="chart_cashout">Annual Cash Outflow</h3>
           <button class="btn-download" data-chart="chart-cashout" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Total cash spent per year: housing costs, taxes, living expenses. Shows when buying costs more or less than renting on a year-by-year basis.</p>
         <div class="chart-canvas" id="chart-cashout"></div>
       </div>
       <div class="chart-card">
@@ -1838,6 +1860,7 @@
           <h3 data-i18n="chart_cashflow">Net Cash Flow</h3>
           <button class="btn-download" data-chart="chart-cashflow" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Income minus all expenses. Negative values mean drawing down savings that year; positive values add to investments. Indicates years of financial stress.</p>
         <div class="chart-canvas" id="chart-cashflow"></div>
       </div>
       <div class="chart-card">
@@ -1845,6 +1868,7 @@
           <h3 data-i18n="chart_liquidity">Cash Liquidity</h3>
           <button class="btn-download" data-chart="chart-liquidity" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Investable liquid assets (stocks/cash). Excludes locked pillars and home equity. The large drop at year 0 for buyers reflects the down payment.</p>
         <div class="chart-canvas" id="chart-liquidity"></div>
       </div>
       <div class="chart-card">
@@ -1852,6 +1876,7 @@
           <h3 data-i18n="chart_delta">Buy vs Rent Delta</h3>
           <button class="btn-download" data-chart="chart-delta" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Net worth difference (best buy strategy minus renting). Positive = buying leads; negative = renting leads. Zero crossing is the financial breakeven year.</p>
         <div class="chart-canvas" id="chart-delta"></div>
       </div>
       <div class="chart-card">
@@ -1859,6 +1884,7 @@
           <h3 data-i18n="chart_gap_change">Annual Gap Change</h3>
           <button class="btn-download" data-chart="chart-cumulative" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Year-over-year change in the buy/rent gap. Green bars mean buying gained ground that year; red bars mean renting gained ground.</p>
         <div class="chart-canvas" id="chart-cumulative"></div>
       </div>
       <div class="chart-card">
@@ -1866,6 +1892,7 @@
           <h3 data-i18n="chart_winshare">Buy Win Share</h3>
           <button class="btn-download" data-chart="chart-winshare" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Percentage of simulated parameter combinations where buying beats renting. Above 50% means buying wins in the majority of scenarios.</p>
         <div class="chart-canvas" id="chart-winshare"></div>
       </div>
       <div class="chart-card">
@@ -1873,6 +1900,7 @@
           <h3 data-i18n="chart_histogram">Delta Histogram</h3>
           <button class="btn-download" data-chart="chart-histogram" data-i18n="btn_download">PNG</button>
         </div>
+        <p class="chart-description">Distribution of final-year buy/rent net worth differences across all scenarios. Orange bars: buying won; blue bars: renting won. Width shows outcome uncertainty.</p>
         <div class="chart-canvas" id="chart-histogram"></div>
       </div>
     </div>
