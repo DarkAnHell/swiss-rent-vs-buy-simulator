@@ -416,12 +416,13 @@ export function clampParams(p) {
  * Rules enforced:
  *  1. Total equity ≥ 20 % of purchase price
  *  2. Hard equity (non-pension: cash + family) ≥ 10 % of purchase price
- *  3. Pillar 2 withdrawal ≤ Pillar 2 balance
- *  4. Pillar 3a withdrawal ≤ Pillar 3a balance
- *  5. Affordability (Tragbarkeit): imputed annual housing costs ≤ 33 % of
+ *  3. Cash down payment ≤ usable assets
+ *  4. Pillar 2 withdrawal ≤ Pillar 2 balance
+ *  5. Pillar 3a withdrawal ≤ Pillar 3a balance
+ *  6. Affordability (Tragbarkeit): imputed annual housing costs ≤ 33 % of
  *     gross income, using a 5 % imputed interest rate, 1 % maintenance,
  *     and linear amortisation of the 2nd mortgage
- *  6. 2nd mortgage must be amortised by retirement (whichever is sooner:
+ *  7. 2nd mortgage must be amortised by retirement (whichever is sooner:
  *     15 years or years until retirement age)
  */
 export function validateParams(p) {
@@ -457,7 +458,16 @@ export function validateParams(p) {
     );
   }
 
-  // 3. Pillar 2 withdrawal ≤ balance
+  // 3. Cash down payment ≤ available liquid assets
+  if (p.cash_downpayment > (p.liquid_assets + p.pillar2_used + p.pillar3a_used + p.family_help)) {
+    throw new Error(
+      `Cash down payment CHF ${fmt(p.cash_downpayment)} exceeds available assets ` +
+      `CHF ${fmt(p.liquid_assets + p.pillar2_used + p.pillar3a_used + p.family_help)}. ` +
+      `Reduce the cash down payment or increase liquid assets.`
+    );
+  }
+
+  // 4. Pillar 2 withdrawal ≤ balance
   if (p.pillar2_used > p.pillar2_start) {
     throw new Error(
       `Invalid 2nd pillar: withdrawal CHF ${fmt(p.pillar2_used)} ` +

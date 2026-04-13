@@ -240,7 +240,7 @@ function dataZoomCommon(withSlider) {
     {
       type: "inside",
       xAxisIndex: 0,
-      filterMode: "none",
+      filterMode: "weakFilter",
       zoomOnMouseWheel: true,
       moveOnMouseMove: "shift",
       moveOnMouseWheel: false,

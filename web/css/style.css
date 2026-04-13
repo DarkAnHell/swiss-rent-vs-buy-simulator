@@ -873,3 +873,13 @@
   color: #fff;
   border-color: var(--color-accent);
 }
+
+/* ===== Footer disclaimer ===== */
+.site-footer {
+  padding: 10px 24px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
