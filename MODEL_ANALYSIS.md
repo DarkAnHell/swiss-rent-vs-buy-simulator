@@ -526,15 +526,7 @@ Stock crashes (every `stock_crash_interval_years`) and housing crashes (every
 outcomes occur when both crash together (e.g., 2008–2009). Incidental overlap is possible
 (e.g., both on year 30 if intervals are 10 and 15) but is not systematically modelled.
 
-### 7.6 "Repay 1st mortgage" strategy imposes an extreme cash burden
-
-With defaults (1 M purchase, 200 k down, 800 k mortgage, 15-year amortisation), this
-strategy repays the full 800 k in 15 years: ≈ CHF 53,333/year in principal alone, plus
-interest. The Swiss norm is to amortise only the 2nd-mortgage slice (≈ CHF 10,000/year).
-This strategy is included to show the long-term wealth benefit of aggressive deleveraging,
-but the near-term cash flow is dramatically tighter than the other strategies.
-
-### 7.7 Rent deposit does not grow with rent increases
+### 7.6 Rent deposit does not grow with rent increases
 
 The rent deposit (3 months' rent) is computed once at year 0 from the initial monthly
 rent and thereafter only grows at `rent_deposit_interest_rate` (default 0%). In practice,
