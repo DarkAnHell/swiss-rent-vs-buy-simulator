@@ -27,9 +27,9 @@ const TOOLTIPS = {
 
   // Starting Assets
   liquid_assets:              "Cash and investable assets today, excluding Pillar 2. Starting portfolio for both strategies.",
-  inflation_rate:             "Annual general price inflation. Used to deflate end values. Enter as decimal (e.g. 0.02 = 2%). Typical CH: 1–3%.",
-  investment_tax_drag_rate:   "Annual return drag from taxes on dividends/interest (e.g. withholding tax). Decimal. Typical: 0–0.5%.",
-  wealth_tax_rate:            "Annual cantonal wealth tax on net financial assets. Decimal. Typical CH: 0–0.3%. Often set by canton preset.",
+  inflation_rate:             "Annual general price inflation. Used to deflate end values. Typical CH: 1–3%.",
+  investment_tax_drag_rate:   "Annual return drag from taxes on dividends/interest (e.g. withholding tax). Typical: 0–0.5%.",
+  wealth_tax_rate:            "Annual cantonal wealth tax on net financial assets. Typical CH: 0–0.3%. Often set by canton preset.",
 
   // Household Cash Flow
   income_working_annual:          "Gross annual household income while working. CHF/year.",
@@ -47,68 +47,68 @@ const TOOLTIPS = {
   moving_cost:                "One-time moving/transition cost. CHF.",
 
   // Macro Drivers
-  market_return:                "Annual nominal return on invested liquid assets. Decimal (e.g. 0.07 = 7%). Historical global equities: ~7–8%.",
-  home_price_growth:            "Annual nominal appreciation of the purchased property. Decimal. Historical CH: ~2–4%.",
-  rent_growth:                  "Annual rate of rent increase. Decimal. Linked to Swiss reference interest rate; historically ~1–3%.",
-  stock_crash_pct:              "Portfolio value lost in a stock crash. Decimal (e.g. 0.40 = 40% crash). Portfolio then recovers at market_return.",
+  market_return:                "Annual nominal return on invested liquid assets. Historical global equities: ~7–8%.",
+  home_price_growth:            "Annual nominal appreciation of the purchased property. Historical CH: ~2–4%.",
+  rent_growth:                  "Annual rate of rent increase. Linked to Swiss reference interest rate; historically ~1–3%.",
+  stock_crash_pct:              "Portfolio value lost in a stock crash (e.g. 40 = 40% crash). Portfolio then recovers at market_return.",
   stock_crash_interval_years:   "Average years between stock crashes. E.g. 10 = one crash per decade.",
-  housing_crash_pct:            "Property value lost in a housing crash. Decimal. Swiss housing is historically less volatile than equities.",
+  housing_crash_pct:            "Property value lost in a housing crash. Swiss housing is historically less volatile than equities.",
   housing_crash_interval_years: "Average years between housing crashes. E.g. 20 = one crash per 20 years.",
 
   // Property & Owner Costs
   purchase_price:                        "Total purchase price of the property. CHF.",
-  maintenance_rate:                      "Annual routine maintenance as % of property value. Decimal. Rule of thumb: 1% (0.01) per year.",
+  maintenance_rate:                      "Annual routine maintenance as % of property value. Rule of thumb: 1% per year.",
   other_owner_costs:                     "Other fixed annual ownership costs (HOA fees, heating system, etc.). CHF/year.",
   property_tax_rate:                     "Annual property tax (Liegenschaftssteuer) rate on assessed value. Auto-set by canton preset. Most cantons: 0–0.3‰.",
   property_tax_assessment_pct:           "Fraction of market value used as the property tax base (Steuerwert). Typically 60–80%.",
   annual_net_tax_impact:                 "Catch-all annual tax adjustment for ownership not modelled elsewhere. CHF/year (negative = benefit, positive = extra cost).",
-  maintenance_deduction_pct_of_imputed:  "Swiss deduction for maintenance costs as % of imputed rent. Decimal. Canton-specific: typically 10–20%.",
-  mortgage_interest_deductible_pct:      "Fraction of mortgage interest deductible from income. Decimal. Usually 1.0 (100%) in Switzerland.",
+  maintenance_deduction_pct_of_imputed:  "Swiss deduction for maintenance costs as % of imputed rent. Canton-specific: typically 10–20%.",
+  mortgage_interest_deductible_pct:      "Fraction of mortgage interest deductible from income. Usually 100% in Switzerland.",
 
   // Mortgage
   mortgage_fixed_years:           "Term length of the initial fixed-rate mortgage tranche. Typical CH: 5–15 years.",
-  mortgage_fixed_rate:            "Annual interest rate on the fixed mortgage tranche. Decimal (e.g. 0.015 = 1.5%).",
-  mortgage_fixed_share:           "Fraction of the total mortgage on the fixed tranche. The rest is variable (SARON-linked). Decimal (e.g. 0.6 = 60% fixed).",
-  mortgage_variable_rate_initial: "Initial rate on the variable (SARON) tranche. Decimal. SARON rate + bank margin.",
-  mortgage_variable_rate_long:    "Long-run assumed rate on the variable tranche after resets. Decimal. Conservative assumption for stress-testing.",
+  mortgage_fixed_rate:            "Annual interest rate on the fixed mortgage tranche. E.g. 1.5 = 1.5%.",
+  mortgage_fixed_share:           "Fraction of the total mortgage on the fixed tranche. The rest is variable (SARON-linked). E.g. 60 = 60% fixed.",
+  mortgage_variable_rate_initial: "Initial rate on the variable (SARON) tranche. SARON rate + bank margin.",
+  mortgage_variable_rate_long:    "Long-run assumed rate on the variable tranche after resets. Conservative assumption for stress-testing.",
   mortgage_variable_adjust_years: "Years between variable rate resets. Typically 1–3 years.",
-  mortgage_refix_rate:            "Rate assumed when the fixed tranche is renewed after its term expires. Decimal.",
+  mortgage_refix_rate:            "Rate assumed when the fixed tranche is renewed after its term expires.",
   mortgage_refix_years:           "Length of each fixed-rate renewal period. Typical: 5–10 years.",
   amort_years:                    "Years over which the mortgage is amortized to reach target LTV. Swiss law: must reach 65% LTV within 15 years.",
-  target_ltv:                     "Target loan-to-value ratio; amortization stops here. Swiss regulatory minimum: 0.65 (65%).",
+  target_ltv:                     "Target loan-to-value ratio; amortization stops here. Swiss regulatory minimum: 65%.",
   upfront_mortgage_fees:          "One-time fees at mortgage origination (notary, land register, etc.). CHF.",
 
   // Taxes
   imputed_rent_pct:                "Swiss imputed rent (Eigenmietwert) as % of market rent added to taxable income. Canton-specific; typically 60–70%. Auto-set by canton preset.",
   imputed_rent_abolition_year:     "Year of simulation at which the Eigenmietwert (imputed rental value) is abolished. When removed, imputed rent income, mortgage interest deduction, and maintenance deduction all go to zero simultaneously (the reform removes both the tax and the deductions together). Set to 9999 to keep it for the entire horizon. E.g. set to 5 if you expect the reform in ~5 years.",
-  marginal_tax_rate:         "Your marginal income tax rate (federal + cantonal + municipal combined). Decimal. Used for mortgage interest shield and imputed rent.",
-  cap_gains_tax_rate_base:   "Starting capital gains tax rate before holding-period discounts. Auto-set by canton preset. Decimal.",
+  marginal_tax_rate:         "Your marginal income tax rate (federal + cantonal + municipal combined). Used for mortgage interest shield and imputed rent.",
+  cap_gains_tax_rate_base:   "Starting capital gains tax rate before holding-period discounts. Auto-set by canton preset.",
   cap_gains_tax:             "Override: flat capital gains tax in CHF. Set to 0 to let the model compute from rate × schedule.",
 
   // Pillar 2
   pillar2_start:                   "Your current Pillar 2 (BVG/LPP) pension fund balance. CHF. Check your latest pension certificate.",
   pillar2_contrib:                 "Total annual Pillar 2 contributions (employee + employer share). CHF/year.",
-  pillar2_rate:                    "Annual interest rate credited by your Pillar 2 fund. BVG legal minimum: 1% (0.01).",
-  pillar2_withdrawal_tax_rate:     "Tax rate on Pillar 2 lump-sum withdrawal (e.g. for home purchase). Decimal. Typical CH: 5–10% (special reduced rate).",
+  pillar2_rate:                    "Annual interest rate credited by your Pillar 2 fund. BVG legal minimum: 1%.",
+  pillar2_withdrawal_tax_rate:     "Tax rate on Pillar 2 lump-sum withdrawal (e.g. for home purchase). Typical CH: 5–10% (special reduced rate).",
   pillar2_annuitize_at_retirement: "If checked, Pillar 2 balance converts to a monthly annuity at retirement instead of staying as liquid capital.",
-  pillar2_conversion_rate:         "Annual pension as % of Pillar 2 capital at retirement. BVG minimum rate: 6.8% (0.068).",
+  pillar2_conversion_rate:         "Annual pension as % of Pillar 2 capital at retirement. BVG minimum rate: 6.8%.",
 
   // Pillar 3a
   pillar3a_start:                   "Your current Pillar 3a (tied pension) account balance. CHF. Check your latest bank/insurance statement.",
   pillar3a_contrib:                 "Annual Pillar 3a contribution. CHF/year. 2025 max for employees with P2: CHF 7,258; without P2: CHF 36,288.",
-  pillar3a_rate:                    "Annual interest/return rate on your Pillar 3a account. Decimal. Bank 3a: ~0.5–1%; fund-based 3a: higher but volatile.",
+  pillar3a_rate:                    "Annual interest/return rate on your Pillar 3a account. Bank 3a: ~0.5–1%; fund-based 3a: higher but volatile.",
   pillar3a_used:                    "Pillar 3a capital withdrawn for the home down payment. CHF. Reduces your 3a balance. Must be repaid if property is sold.",
-  pillar3a_withdrawal_tax_rate:     "Tax rate on Pillar 3a lump-sum withdrawal. Decimal. Similar to P2 withdrawal tax, typically 5–10%. Varies by canton.",
-  pillar3a_tax_deduction_rate:      "Effective tax savings rate from P3a contribution deductions. Decimal. E.g. 0.25 means each CHF contributed saves 0.25 CHF in taxes. Set to 0 to ignore.",
+  pillar3a_withdrawal_tax_rate:     "Tax rate on Pillar 3a lump-sum withdrawal. Similar to P2 withdrawal tax, typically 5–10%. Varies by canton.",
+  pillar3a_tax_deduction_rate:      "Effective tax savings rate from P3a contribution deductions. E.g. 25 means each CHF contributed saves 0.25 CHF in taxes. Set to 0 to ignore.",
   stop_pillar3a_contrib_at_retirement: "If checked, Pillar 3a contributions stop at retirement age. 3a accounts must be withdrawn by age 70 (men) / 69 (women).",
 
   // Transaction Costs
-  buying_cost_pct:           "Buying transaction costs as % of purchase price (notary, agent, registration). Decimal. Typical CH: 1–3%.",
+  buying_cost_pct:           "Buying transaction costs as % of purchase price (notary, agent, registration). Typical CH: 1–3%.",
   buying_cost_fixed:         "Fixed buying costs added on top of the percentage costs. CHF.",
-  property_transfer_tax_rate:"Cantonal property transfer tax (Handänderungssteuer) as % of price. Auto-set by canton preset. Decimal.",
-  selling_cost_pct:          "Selling costs as % of sale price (agent, notary). Decimal. Typical CH: 2–4%.",
+  property_transfer_tax_rate:"Cantonal property transfer tax (Handänderungssteuer) as % of price. Auto-set by canton preset.",
+  selling_cost_pct:          "Selling costs as % of sale price (agent, notary). Typical CH: 2–4%.",
   selling_cost_fixed:        "Fixed selling costs. CHF.",
-  capex_rate:                "Major renovation/capital expenditure as % of property value, paid every capex_interval_years. Decimal. Typical: 3–5%.",
+  capex_rate:                "Major renovation/capital expenditure as % of property value, paid every capex_interval_years. Typical: 3–5%.",
   capex_interval_years:      "Years between major capex events. E.g. 15 = full renovation every 15 years.",
   capex_first_year:          "Year of simulation at which the first capex event occurs.",
 
@@ -119,15 +119,127 @@ const TOOLTIPS = {
 
   // Landlord Mode
   rent_out_monthly_multiplier:        "Multiplier on rent_monthly to set the tenant rent when the property is rented out. 1.0 = same rent as the reference apartment.",
-  rent_out_vacancy_rate:              "Fraction of the year the property sits empty (no rental income). Decimal. E.g. 0.05 = 5% vacancy.",
-  rent_out_management_fee_rate:       "Annual property management fee as fraction of rental income. Decimal. E.g. 0.08 = 8%.",
+  rent_out_vacancy_rate:              "Fraction of the year the property sits empty (no rental income). E.g. 5 = 5% vacancy.",
+  rent_out_management_fee_rate:       "Annual property management fee as fraction of rental income. E.g. 8 = 8%.",
   rent_out_other_costs:               "Other annual landlord costs (extra insurance, small repairs). CHF/year.",
-  rent_out_income_tax_rate:           "Marginal tax rate on net rental income. Decimal. Usually equals marginal_tax_rate.",
+  rent_out_income_tax_rate:           "Marginal tax rate on net rental income. Usually equals marginal_tax_rate.",
   second_home_rent_monthly:           "Monthly rent you pay for your own place while renting out the purchased property (Buy & Rent-out strategies). CHF/month.",
   second_home_rent_multiplier:        "Multiplier on second_home_rent_monthly. Use 1.0; adjust if your secondary rent grows differently.",
   second_home_rent_deposit_months:    "Security deposit months for your own rented home while being a landlord. Typically 2–3.",
   rent_out_trigger_liquidity_threshold: "Buy→Rent-out strategy: liquid assets threshold below which the property is rented out. 0 = rent out as soon as liquidity hits zero.",
 };
+
+// ---- Unit metadata for params ----
+// "pct" = stored as decimal (0.02), displayed as percent (2.0)
+// Other values are display-only unit labels (no value conversion)
+
+const PARAM_UNITS = {
+  // Percentage params (stored as decimal, displayed as %)
+  inflation_rate:                       "pct",
+  investment_tax_drag_rate:             "pct",
+  wealth_tax_rate:                      "pct",
+  rent_deposit_interest_rate:           "pct",
+  market_return:                        "pct",
+  home_price_growth:                    "pct",
+  rent_growth:                          "pct",
+  stock_crash_pct:                      "pct",
+  housing_crash_pct:                    "pct",
+  maintenance_rate:                     "pct",
+  property_tax_rate:                    "pct",
+  property_tax_assessment_pct:          "pct",
+  maintenance_deduction_pct_of_imputed: "pct",
+  mortgage_interest_deductible_pct:     "pct",
+  mortgage_fixed_rate:                  "pct",
+  mortgage_fixed_share:                 "pct",
+  mortgage_variable_rate_initial:       "pct",
+  mortgage_variable_rate_long:          "pct",
+  mortgage_refix_rate:                  "pct",
+  target_ltv:                           "pct",
+  imputed_rent_pct:                     "pct",
+  marginal_tax_rate:                    "pct",
+  cap_gains_tax_rate_base:              "pct",
+  pillar2_rate:                         "pct",
+  pillar2_withdrawal_tax_rate:          "pct",
+  pillar2_conversion_rate:              "pct",
+  pillar3a_rate:                        "pct",
+  pillar3a_withdrawal_tax_rate:         "pct",
+  pillar3a_tax_deduction_rate:          "pct",
+  buying_cost_pct:                      "pct",
+  property_transfer_tax_rate:           "pct",
+  selling_cost_pct:                     "pct",
+  capex_rate:                           "pct",
+  rent_out_vacancy_rate:                "pct",
+  rent_out_management_fee_rate:         "pct",
+  rent_out_income_tax_rate:             "pct",
+
+  // CHF amounts
+  liquid_assets:                  "CHF",
+  income_working_annual:          "CHF/yr",
+  retirement_income_annual:       "CHF/yr",
+  non_housing_expenses_working:   "CHF/yr",
+  non_housing_expenses_retired:   "CHF/yr",
+  retirement_oneoff_cost:         "CHF",
+  rent_monthly:                   "CHF/mo",
+  rent_insurance_annual:          "CHF/yr",
+  moving_cost:                    "CHF",
+  purchase_price:                 "CHF",
+  other_owner_costs:              "CHF/yr",
+  annual_net_tax_impact:          "CHF/yr",
+  upfront_mortgage_fees:          "CHF",
+  cap_gains_tax:                  "CHF",
+  pillar2_start:                  "CHF",
+  pillar2_contrib:                "CHF/yr",
+  pillar3a_start:                 "CHF",
+  pillar3a_contrib:               "CHF/yr",
+  pillar3a_used:                  "CHF",
+  buying_cost_fixed:              "CHF",
+  selling_cost_fixed:             "CHF",
+  rent_out_other_costs:           "CHF/yr",
+  second_home_rent_monthly:       "CHF/mo",
+  cash_downpayment:               "CHF",
+  pillar2_used:                   "CHF",
+  family_help:                    "CHF",
+  rent_out_trigger_liquidity_threshold: "CHF",
+
+  // Year / time params
+  years:                        "yr",
+  current_age:                  "yr",
+  retirement_age:               "yr",
+  mortgage_fixed_years:         "yr",
+  mortgage_variable_adjust_years: "yr",
+  mortgage_refix_years:         "yr",
+  amort_years:                  "yr",
+  capex_interval_years:         "yr",
+  capex_first_year:             "yr",
+  imputed_rent_abolition_year:  "yr",
+  stock_crash_interval_years:   "yr",
+  housing_crash_interval_years: "yr",
+
+  // Month params
+  rent_deposit_months:              "mo",
+  second_home_rent_deposit_months:  "mo",
+};
+
+function isPct(key) {
+  return PARAM_UNITS[key] === "pct";
+}
+
+/** Convert a stored decimal value to display value (multiply by 100 for pct params). */
+function toDisplay(val, key) {
+  if (isPct(key) && typeof val === "number" && isFinite(val)) {
+    // Round away floating-point noise (e.g. 0.015 * 100 → 1.4999...)
+    return Math.round(val * 100 * 1e10) / 1e10;
+  }
+  return val;
+}
+
+/** Convert a display value back to stored decimal (divide by 100 for pct params). */
+function fromDisplay(val, key) {
+  if (isPct(key) && isFinite(val)) {
+    return val / 100;
+  }
+  return val;
+}
 
 // ---- Basic vs Advanced param split ----
 
@@ -141,7 +253,7 @@ const BASIC_PARAMS = {
   non_housing_expenses_retired: "e.g. 40000",
   rent_monthly:                 "e.g. 2000",
   purchase_price:               "e.g. 1000000",
-  marginal_tax_rate:            "e.g. 0.25",
+  marginal_tax_rate:            "e.g. 25",
   pillar2_start:                "e.g. 50000",
   pillar2_contrib:              "e.g. 6000",
   pillar3a_start:               "e.g. 20000",
@@ -201,7 +313,7 @@ function readConfigFromUI() {
         if (val === "") {
           // Empty field — keep DEFAULT_CONFIG value (already spread above)
         } else {
-          config[key] = parseFloat(val) || 0;
+          config[key] = fromDisplay(parseFloat(val) || 0, key);
         }
       }
     } else {
@@ -209,8 +321,8 @@ function readConfigFromUI() {
       const maxInput = row.querySelector('.range-inputs input[data-field="max"]');
       const nInput = row.querySelector('.range-inputs input[data-field="n"]');
       if (minInput && maxInput && nInput) {
-        const minVal = parseFloat(minInput.value) || 0;
-        const maxVal = parseFloat(maxInput.value) || 0;
+        const minVal = fromDisplay(parseFloat(minInput.value) || 0, key);
+        const maxVal = fromDisplay(parseFloat(maxInput.value) || 0, key);
         const nVal = parseInt(nInput.value) || 2;
         config[key] = lin(minVal, maxVal, nVal);
       }
@@ -257,12 +369,13 @@ function populateUI(config, forceValues = false) {
       const nInput = row.querySelector('.range-inputs input[data-field="n"]');
 
       if (value.type === "lin" || value.type === "log") {
-        if (minInput) minInput.value = value.min;
-        if (maxInput) maxInput.value = value.max;
+        if (minInput) minInput.value = toDisplay(value.min, key);
+        if (maxInput) maxInput.value = toDisplay(value.max, key);
         if (nInput) nInput.value = value.n;
       } else if (value.type === "choices") {
-        if (minInput) minInput.value = Math.min(...value.values);
-        if (maxInput) maxInput.value = Math.max(...value.values);
+        const displayVals = value.values.map((v) => toDisplay(v, key));
+        if (minInput) minInput.value = Math.min(...displayVals);
+        if (maxInput) maxInput.value = Math.max(...displayVals);
         if (nInput) nInput.value = value.values.length;
       }
     } else {
@@ -276,7 +389,8 @@ function populateUI(config, forceValues = false) {
           input.value = "";
           input.placeholder = BASIC_PARAMS[key];
         } else {
-          input.value = typeof value === "number" ? value : "";
+          const displayVal = typeof value === "number" ? toDisplay(value, key) : "";
+          input.value = displayVal;
           if (key in BASIC_PARAMS) input.placeholder = BASIC_PARAMS[key];
         }
       }
@@ -325,7 +439,7 @@ function applyCanton(code) {
 
       const input = row.querySelector('.fixed-input input[data-field="value"]');
       if (input) {
-        input.value = val;
+        input.value = toDisplay(val, key);
         input.setAttribute("readonly", "");
       }
       row.dataset.cantonLocked = "true";
@@ -578,6 +692,35 @@ function injectTooltips() {
   }
 }
 
+// ---- Unit badges ----
+
+function initUnitBadges() {
+  document.querySelectorAll(".param-row[data-param]").forEach((row) => {
+    const key = row.dataset.param;
+    const unitMeta = PARAM_UNITS[key];
+    if (!unitMeta) return;
+    const unitLabel = unitMeta === "pct" ? "%" : unitMeta;
+
+    // Add badge to fixed input group
+    const fixedGroup = row.querySelector(".fixed-input");
+    if (fixedGroup) {
+      const badge = document.createElement("span");
+      badge.className = "param-unit";
+      badge.textContent = unitLabel;
+      fixedGroup.appendChild(badge);
+    }
+
+    // Add badge after the max input in range mode
+    const maxInput = row.querySelector('.range-inputs input[data-field="max"]');
+    if (maxInput) {
+      const badge = document.createElement("span");
+      badge.className = "param-unit";
+      badge.textContent = unitLabel;
+      maxInput.after(badge);
+    }
+  });
+}
+
 // ---- Config level (Basic / Advanced) ----
 
 function initConfigLevels() {
@@ -763,6 +906,7 @@ function init() {
   initConfigLevels();
   populateUI(DEFAULT_CONFIG);
   injectTooltips();
+  initUnitBadges();
   initTheme();
   initLang();
   initConfigLevelToggle();
