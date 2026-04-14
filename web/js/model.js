@@ -241,11 +241,17 @@ export function computeLandlordYear(p, plan, year, mortgageBegin, homeValue, ren
 // ---------------------------------------------------------------------------
 
 export function investStep(prev, contribution, year, p) {
-  const gross = prev * marketGrowthFactorForYear(p, year);
-  const tax_base = Math.max(0.0, prev);
-  const tax_drag = tax_base * p.investment_tax_drag_rate;
-  const wealth_tax = tax_base * p.wealth_tax_rate;
-  return gross - tax_drag - wealth_tax + contribution;
+  if (prev >= 0) {
+    // Positive balance: invested in the market, subject to growth, crashes, and taxes
+    const gross = prev * marketGrowthFactorForYear(p, year);
+    const tax_drag = prev * p.investment_tax_drag_rate;
+    const wealth_tax = prev * p.wealth_tax_rate;
+    return gross - tax_drag - wealth_tax + contribution;
+  } else {
+    // Negative balance: deficit/debt — not invested in the market, no market dynamics
+    // Simply carry forward the deficit and add this year's net cash flow
+    return prev + contribution;
+  }
 }
 
 // ---------------------------------------------------------------------------
