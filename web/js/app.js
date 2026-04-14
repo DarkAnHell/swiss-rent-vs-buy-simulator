@@ -8,6 +8,7 @@ import { splitConfig, applyCantonProfile } from "./config.js";
 import {
   renderAllCharts,
   renderSummary,
+  renderHistogram,
   destroyAllCharts,
   downloadChart,
   setStrategyEnabled,
@@ -539,6 +540,7 @@ async function runSimulation() {
     destroyAllCharts();
     renderAllCharts(agg, events);
     renderSummary(agg);
+    initHistogramSlider(agg);
   } catch (err) {
     progressLabel.textContent = `${err.message}`;
     progressLabel.classList.add("error");
@@ -647,6 +649,33 @@ function initLang() {
   });
 }
 
+// ---- Histogram year slider ----
+
+let lastRenderedAgg = null;
+
+function wireHistogramSlider() {
+  const slider = document.getElementById("histogram-year-slider");
+  const display = document.getElementById("histogram-year-display");
+  if (!slider || !display) return;
+
+  slider.addEventListener("input", () => {
+    const year = parseInt(slider.value, 10);
+    display.textContent = year;
+    if (lastRenderedAgg) renderHistogram(lastRenderedAgg, year);
+  });
+}
+
+function initHistogramSlider(agg) {
+  lastRenderedAgg = agg;
+  const slider = document.getElementById("histogram-year-slider");
+  const display = document.getElementById("histogram-year-display");
+  if (!slider || !display) return;
+  slider.max = agg.T;
+  slider.value = agg.T;
+  slider.disabled = false;
+  display.textContent = agg.T;
+}
+
 // ---- Download buttons ----
 
 function wireDownloadButtons() {
@@ -749,6 +778,7 @@ function init() {
   wireModeToggles();
   wireDownloadButtons();
   wireLegendToggles();
+  wireHistogramSlider();
 
   btnExportPreset?.addEventListener("click", exportPreset);
   btnImportPreset?.addEventListener("click", () => importPresetInput?.click());

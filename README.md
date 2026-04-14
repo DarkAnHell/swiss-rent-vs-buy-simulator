@@ -23,12 +23,17 @@ For each strategy, it tracks net worth, cash flows, liquid assets, and mortgage 
 - **Client-side only** — simulation runs in Web Workers with streaming aggregation. No data leaves the browser.
 - **Bank qualification rules** — enforces standard Swiss mortgage requirements before running the simulation: 20% minimum equity (10% hard equity from non-pension sources), affordability stress test (Tragbarkeit) at 5% imputed interest, and amortisation-by-retirement check.
 - **Crash stress testing** — periodic stock market and housing crashes at configurable intervals and severity.
-- **8 interactive charts** — net worth, cash outflow, cash flow, liquidity, buy-vs-rent delta, annual gap change, win share percentage, and end-delta histogram. Built on Apache ECharts with synced crosshairs, linked zoom, and event-line markers for retirement, mortgage milestones, crashes, and renovations.
+- **8 interactive charts** — net worth, cash outflow, cash flow, liquidity, buy-vs-rent delta (all buy strategies), annual gap change, win share percentage, and end-delta histogram. Built on Apache ECharts with synced crosshairs, linked zoom, and event-line markers for retirement, mortgage milestones, crashes, and renovations.
+- **Rich tooltips** — hover tooltips show mean value plus min/max range when the envelope band is enabled.
+- **Histogram year slider** — scrub the Delta Histogram year by year to watch the outcome distribution evolve; defaults to the final simulation year. Per-year distribution data is collected alongside the main sweep.
+- **Strategy info tooltips** — every legend item has an ⓘ icon explaining what each strategy does.
+- **Chart direction labels** — each chart shows a "Higher is better" / "Lower is better" subtitle to guide interpretation.
+- **Summary descriptions** — the summary panel includes a one-line explanation of what each statistic means.
 - **Basic / Advanced config toggle** — beginners see only the key parameters; advanced mode exposes the full parameter set.
 - **Import / Export presets** — save and restore the full parameter configuration as a JSON file.
 - **Dark mode** with persistent theme toggle.
 - **Multi-language** — English, German, French, and Italian.
-- **PNG export** — download any chart as a PNG image.
+- **Export Image** — download any chart as a high-resolution PNG.
 
 ## Architecture
 

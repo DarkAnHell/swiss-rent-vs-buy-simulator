@@ -4,6 +4,10 @@
  *
  * This keeps memory O(T × fields) instead of O(N × T × fields),
  * allowing 600k+ scenarios without OOM.
+ *
+ * Per-year histograms are stored for the Delta Histogram year slider.
+ * Memory cost: (T+1) × combos.length × 4 bytes (Float32), acceptable for
+ * typical usage. For very large sweeps, binning uses deltaAcc min/max.
  */
 
 import { simulate, clampParams, validateParams, breakeven } from "./model.js";
@@ -97,13 +101,13 @@ self.onmessage = function (e) {
   let beSum = 0;
   let beCount = 0;
 
-  // Histogram: we'll collect all diffs in a compact typed array
-  // then bin them at the end (uses ~5 bytes per sim, so 600k = 3 MB)
-  // Actually, even that is a lot. Use a two-pass approach:
-  // first pass: find min/max of diffs. But we only have one pass.
-  // Solution: use an adaptive histogram with wide initial range,
-  // or just collect diffs as Float32Array (600k × 4 bytes = 2.4 MB — fine).
+  // Histogram: collect final-year diffs for the end histogram
   const diffs = new Float32Array(combos.length);
+
+  // Per-year diffs: layout [year * combos.length + combo_idx]
+  // Used to build per-year histograms after deltaAcc min/max are known.
+  // Memory: (T+1) × combos.length × 4 bytes (Float32)
+  const diffsPerYear = new Float32Array((T + 1) * combos.length);
 
   let progressCount = 0;
 
@@ -149,6 +153,7 @@ self.onmessage = function (e) {
           if (d < deltaAcc.min[t]) deltaAcc.min[t] = d;
           if (d > deltaAcc.max[t]) deltaAcc.max[t] = d;
           if (d >= 0) buyWinCount[t]++;
+          diffsPerYear[t * combos.length + ci] = d;
         }
       }
 
@@ -176,7 +181,7 @@ self.onmessage = function (e) {
       self.postMessage({ type: "progress", count: progressCount });
     }
 
-    // Build histogram bins from collected diffs
+    // Build final-year histogram bins from collected diffs
     const histMin = deltaMin;
     const histMax = deltaMax;
     const nBins = HIST_BINS;
@@ -185,6 +190,26 @@ self.onmessage = function (e) {
     for (let i = 0; i < diffs.length; i++) {
       const idx = Math.min(nBins - 1, Math.floor((diffs[i] - histMin) / binWidth));
       histBins[idx]++;
+    }
+
+    // Build per-year histograms using deltaAcc min/max for bin edges
+    const histPerYear = [];
+    for (let t = 0; t <= T; t++) {
+      const tMin = isFinite(deltaAcc.min[t]) ? deltaAcc.min[t] : 0;
+      const tMax = isFinite(deltaAcc.max[t]) ? deltaAcc.max[t] : 0;
+      const tBinWidth = (tMax - tMin) / nBins || 1;
+      const bins = new Int32Array(nBins);
+      for (let ci = 0; ci < combos.length; ci++) {
+        const v = diffsPerYear[t * combos.length + ci];
+        const idx = Math.min(nBins - 1, Math.max(0, Math.floor((v - tMin) / tBinWidth)));
+        bins[idx]++;
+      }
+      histPerYear.push({
+        bins: Array.from(bins),
+        min: tMin,
+        max: tMax,
+        binWidth: tBinWidth,
+      });
     }
 
     // Serialize accumulators
@@ -211,6 +236,7 @@ self.onmessage = function (e) {
         histMin,
         histMax,
         histBinWidth: binWidth,
+        histPerYear,
       },
     });
   } catch (err) {

@@ -1813,22 +1813,27 @@
       <button class="legend-item" data-strategy="rent" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#1F77B4"></span>
         <span data-i18n="strat_rent">Rent</span>
+        <span class="strat-info" tabindex="-1" aria-label="Strategy description">ⓘ<span class="strat-tip">Rents an apartment and invests all surplus income in a diversified portfolio. No property ownership, full liquidity. Serves as the baseline comparator.</span></span>
       </button>
       <button class="legend-item" data-strategy="buy_keep1st" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#FF7F0E"></span>
         <span data-i18n="strat_buy_owner">Buy (Keep 1st mortgage)</span>
+        <span class="strat-info" tabindex="-1" aria-label="Strategy description">ⓘ<span class="strat-tip">Purchases a home and keeps both mortgage tranches (1st &amp; 2nd) throughout, maximising interest deductions. Surplus cash is invested in the market.</span></span>
       </button>
       <button class="legend-item" data-strategy="buy_repay1st" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#E377C2"></span>
         <span data-i18n="strat_buy_repay_first">Buy (Repay 1st mortgage)</span>
+        <span class="strat-info" tabindex="-1" aria-label="Strategy description">ⓘ<span class="strat-tip">Purchases a home and aggressively repays the 1st mortgage tranche as fast as possible, reducing interest costs but holding less liquid wealth until paid off.</span></span>
       </button>
       <button class="legend-item" data-strategy="buy_let_trig" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#2CA02C"></span>
         <span data-i18n="strat_buy_then_rent">Buy &rarr; Rent-out</span>
+        <span class="strat-info" tabindex="-1" aria-label="Strategy description">ⓘ<span class="strat-tip">Buys and lives in the property initially. When liquid assets fall below a configurable threshold, converts to landlord mode: rents the property out and rents a cheaper home to restore cash flow.</span></span>
       </button>
       <button class="legend-item" data-strategy="buy_let_imm" type="button" title="Click to toggle">
         <span class="legend-swatch" style="background:#9467BD"></span>
         <span data-i18n="strat_buy_and_rent">Buy &amp; Rent-out</span>
+        <span class="strat-info" tabindex="-1" aria-label="Strategy description">ⓘ<span class="strat-tip">Immediately buys an investment property and rents it out from day one, while personally renting a separate home. Rental income and property appreciation build wealth alongside market investments.</span></span>
       </button>
       <span class="legend-sep"></span>
       <button class="legend-item legend-toggle" id="legend-bands-toggle" type="button" title="Show/hide min-max range">
@@ -1842,66 +1847,78 @@
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_networth">Net Worth Over Time</h3>
-          <button class="btn-download" data-chart="chart-networth" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-networth" data-i18n="btn_download">Export Image</button>
         </div>
+        <div class="chart-direction higher">&#9650; Higher is better</div>
         <p class="chart-description">Total wealth per strategy — investments, pillar balances, and home equity minus mortgage. The main lens for comparing long-term outcomes.</p>
         <div class="chart-canvas" id="chart-networth"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_cashout">Annual Cash Outflow</h3>
-          <button class="btn-download" data-chart="chart-cashout" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-cashout" data-i18n="btn_download">Export Image</button>
         </div>
+        <div class="chart-direction lower">&#9660; Lower is better</div>
         <p class="chart-description">Total cash spent per year: housing costs, taxes, living expenses. Shows when buying costs more or less than renting on a year-by-year basis.</p>
         <div class="chart-canvas" id="chart-cashout"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_cashflow">Net Cash Flow</h3>
-          <button class="btn-download" data-chart="chart-cashflow" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-cashflow" data-i18n="btn_download">Export Image</button>
         </div>
+        <div class="chart-direction higher">&#9650; Higher is better</div>
         <p class="chart-description">Income minus all expenses. Negative values mean drawing down savings that year; positive values add to investments. Indicates years of financial stress.</p>
         <div class="chart-canvas" id="chart-cashflow"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_liquidity">Cash Liquidity</h3>
-          <button class="btn-download" data-chart="chart-liquidity" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-liquidity" data-i18n="btn_download">Export Image</button>
         </div>
+        <div class="chart-direction higher">&#9650; Higher is better</div>
         <p class="chart-description">Investable liquid assets (stocks/cash). Excludes locked pillars and home equity. The large drop at year 0 for buyers reflects the down payment.</p>
         <div class="chart-canvas" id="chart-liquidity"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_delta">Buy vs Rent Delta</h3>
-          <button class="btn-download" data-chart="chart-delta" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-delta" data-i18n="btn_download">Export Image</button>
         </div>
-        <p class="chart-description">Net worth difference (best buy strategy minus renting). Positive = buying leads; negative = renting leads. Zero crossing is the financial breakeven year.</p>
+        <div class="chart-direction higher">&#9650; Higher is better &mdash; positive = buying leads</div>
+        <p class="chart-description">Net worth difference for each buy strategy minus renting. Positive = buying leads; negative = renting leads. Zero crossing is the financial breakeven year.</p>
         <div class="chart-canvas" id="chart-delta"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_gap_change">Annual Gap Change</h3>
-          <button class="btn-download" data-chart="chart-cumulative" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-cumulative" data-i18n="btn_download">Export Image</button>
         </div>
+        <div class="chart-direction higher">&#9650; Higher is better &mdash; green = buying gaining ground</div>
         <p class="chart-description">Year-over-year change in the buy/rent gap. Green bars mean buying gained ground that year; red bars mean renting gained ground.</p>
         <div class="chart-canvas" id="chart-cumulative"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_winshare">Buy Win Share</h3>
-          <button class="btn-download" data-chart="chart-winshare" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-winshare" data-i18n="btn_download">Export Image</button>
         </div>
+        <div class="chart-direction higher">&#9650; Higher is better &mdash; above 50% = buying wins majority</div>
         <p class="chart-description">Percentage of simulated parameter combinations where buying beats renting. Above 50% means buying wins in the majority of scenarios.</p>
         <div class="chart-canvas" id="chart-winshare"></div>
       </div>
       <div class="chart-card">
         <div class="chart-header">
           <h3 data-i18n="chart_histogram">Delta Histogram</h3>
-          <button class="btn-download" data-chart="chart-histogram" data-i18n="btn_download">PNG</button>
+          <button class="btn-download" data-chart="chart-histogram" data-i18n="btn_download">Export Image</button>
         </div>
-        <p class="chart-description">Distribution of final-year buy/rent net worth differences across all scenarios. Orange bars: buying won; blue bars: renting won. Width shows outcome uncertainty.</p>
+        <div class="chart-direction neutral">Wider spread = more outcome uncertainty</div>
+        <p class="chart-description">Distribution of buy/rent net worth differences across all scenarios. Orange bars: buying won; blue bars: renting won. Use the slider to explore year by year.</p>
         <div class="chart-canvas" id="chart-histogram"></div>
+        <div class="histogram-controls">
+          <label class="histogram-year-label" for="histogram-year-slider">Year: <span id="histogram-year-display">—</span></label>
+          <input type="range" id="histogram-year-slider" class="histogram-year-slider" min="0" max="60" value="60" step="1" disabled>
+        </div>
       </div>
     </div>
 
@@ -1917,6 +1934,12 @@
 
 <footer class="site-footer">
   <p>Not financial advice &mdash; results are illustrative only. All calculations run entirely in your browser; no data is sent to or stored on any server.</p>
+  <p class="footer-github">Don't trust me, trust the code:
+    <a href="https://github.com/DarkAnHell/swiss-rent-vs-buy-simulator/" target="_blank" rel="noopener noreferrer" class="github-link">
+      <svg class="github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      swiss-rent-vs-buy-simulator
+    </a>
+  </p>
 </footer>
 
 <script type="module" src="js/app.js"></script>

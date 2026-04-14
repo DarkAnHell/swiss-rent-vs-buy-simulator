@@ -5,9 +5,11 @@
  * Features:
  *   - Beautiful defaults (smooth lines, soft envelopes, dark/light aware)
  *   - Synced crosshair across all charts via echarts.connect(group)
- *   - Range zoom via dataZoom (inside + mouse wheel on all charts,
- *     slider on the first one only to avoid clutter)
+ *   - Range zoom via dataZoom (inside + mouse wheel on all charts)
  *   - Event-line markers (retirement / capex / crashes) via markLine
+ *   - Tooltip shows mean + min/max when bands are visible
+ *   - Delta chart shows all buy strategies vs rent
+ *   - Histogram supports year-by-year slider
  */
 
 const ECHARTS_GROUP = "house-buy-sim";
@@ -33,6 +35,20 @@ const STRATEGY_LABELS = {
 const SERIES_GROUPS = ["networth", "total_cash_out", "net_cashflow", "invest"];
 const STRATEGIES = ["_rent", "_buy", "_buy_repay_first", "_buy_let_trigger", "_buy_let_immediate"];
 const STRAT_KEYS = ["rent", "buy_keep1st", "buy_repay1st", "buy_let_trig", "buy_let_imm"];
+
+// Map from strategy label → strategy key (for tooltip lookup)
+const LABEL_TO_KEY = Object.fromEntries(
+  Object.entries(STRATEGY_LABELS).map(([k, v]) => [v, k])
+);
+
+// Map from strategy key → series suffix (for seriesData lookup)
+const STRAT_KEY_TO_SUFFIX = {
+  rent:         "_rent",
+  buy_keep1st:  "_buy",
+  buy_repay1st: "_buy_repay_first",
+  buy_let_trig: "_buy_let_trigger",
+  buy_let_imm:  "_buy_let_immediate",
+};
 
 // ---- Visibility state (shared across all charts) ----
 const visibility = {
@@ -200,7 +216,31 @@ function axisCommon(tc) {
   };
 }
 
-function tooltipCommon(tc) {
+// Build tooltip rows with mean and optional min/max for a given strategy + year
+function buildTooltipRow(p, t, group) {
+  const colour = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:6px;flex-shrink:0;"></span>`;
+  const meanStr = fmtCHF(p.value);
+
+  let minMaxHtml = "";
+  if (visibility.bands && group && lastAgg) {
+    const key = LABEL_TO_KEY[p.seriesName];
+    if (key && STRAT_KEY_TO_SUFFIX[key]) {
+      const acc = lastAgg.seriesData[group + STRAT_KEY_TO_SUFFIX[key]];
+      if (acc && acc.count[t] > 1) {
+        const mn = acc.min[t];
+        const mx = acc.max[t];
+        if (isFinite(mn) && isFinite(mx) && mn !== mx) {
+          minMaxHtml = `<div style="padding-left:15px;color:#888;font-size:10px;margin-top:1px;">↕ ${fmtCHF(mn)} \u2013 ${fmtCHF(mx)}</div>`;
+        }
+      }
+    }
+  }
+
+  const mainRow = `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span style="display:flex;align-items:center;">${colour}${p.seriesName}</span><b style="margin-left:8px;">${meanStr}</b></div>`;
+  return mainRow + minMaxHtml;
+}
+
+function tooltipCommon(tc, group) {
   return {
     trigger: "axis",
     axisPointer: {
@@ -222,13 +262,11 @@ function tooltipCommon(tc) {
     formatter: (params) => {
       if (!params || !params.length) return "";
       const year = params[0].axisValueLabel ?? params[0].axisValue;
+      const t = parseInt(year);
       // Keep only the "mean" series (drop envelope bands and markLine entries)
       const rows = params
         .filter((p) => !p.seriesName?.endsWith("__band") && p.value != null && p.componentType !== "markLine")
-        .map((p) => {
-          const colour = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:6px;"></span>`;
-          return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span>${colour}${p.seriesName}</span><b style="margin-left:8px;">${fmtCHF(p.value)}</b></div>`;
-        })
+        .map((p) => buildTooltipRow(p, t, group))
         .join("");
       return `<div style="font-weight:600;margin-bottom:4px;">Year ${year}</div>${rows}`;
     },
@@ -426,7 +464,7 @@ function envelopeChart(canvasId, agg, group, yLabel, events, withSlider) {
     animation: true,
     animationDuration: 300,
     grid: gridOption(withSlider),
-    tooltip: tooltipCommon(tc),
+    tooltip: tooltipCommon(tc, group),
     xAxis: axes.xAxis,
     yAxis: axes.yAxis,
     dataZoom: dataZoomCommon(withSlider),
@@ -445,7 +483,7 @@ export function renderAllCharts(agg, events) {
   lastAgg = agg;
   lastEvents = events;
 
-  envelopeChart("chart-networth",  agg, "networth",       "Net Worth (CHF)",       events, true);
+  envelopeChart("chart-networth",  agg, "networth",       "Net Worth (CHF)",       events, false);
   envelopeChart("chart-cashout",   agg, "total_cash_out", "Annual Outflow (CHF)",  events, false);
   envelopeChart("chart-cashflow",  agg, "net_cashflow",   "Net Cash Flow (CHF)",   events, false);
   envelopeChart("chart-liquidity", agg, "invest",         "Liquid Assets (CHF)",   events, false);
@@ -453,7 +491,7 @@ export function renderAllCharts(agg, events) {
   renderDeltaChart(agg, events);
   renderDeltaChangeChart(agg, events);
   renderWinShareChart(agg, events);
-  renderHistogram(agg);
+  renderHistogram(agg, agg.T);
 
   // Connect all charts in the group so tooltip & dataZoom sync
   echarts.connect(ECHARTS_GROUP);
@@ -461,8 +499,8 @@ export function renderAllCharts(agg, events) {
 
 // ---- Toggle API (called from app.js on legend clicks) ----
 
-// Re-render only the four envelope charts (delta/winshare/histogram don't depend
-// on strategy visibility). Preserves current dataZoom state on each chart.
+// Re-render the four envelope charts + delta chart on strategy/band toggle.
+// Preserves current dataZoom state on each chart.
 function rerenderEnvelopes() {
   if (!lastAgg) return;
   const zoomState = {};
@@ -476,10 +514,11 @@ function rerenderEnvelopes() {
     }
   }
 
-  envelopeChart("chart-networth",  lastAgg, "networth",       "Net Worth (CHF)",       lastEvents, true);
+  envelopeChart("chart-networth",  lastAgg, "networth",       "Net Worth (CHF)",       lastEvents, false);
   envelopeChart("chart-cashout",   lastAgg, "total_cash_out", "Annual Outflow (CHF)",  lastEvents, false);
   envelopeChart("chart-cashflow",  lastAgg, "net_cashflow",   "Net Cash Flow (CHF)",   lastEvents, false);
   envelopeChart("chart-liquidity", lastAgg, "invest",         "Liquid Assets (CHF)",   lastEvents, false);
+  renderDeltaChart(lastAgg, lastEvents);
 
   // Restore zoom so user's range selection isn't lost on toggle
   for (const id of ids) {
@@ -514,56 +553,141 @@ export function getVisibility() {
 function renderDeltaChart(agg, events) {
   const T = agg.T;
   const years = Array.from({ length: T + 1 }, (_, i) => String(i));
-  const delta = deriveSeries(agg.deltaAcc, T);
   const tc = themeColors();
 
-  const series = [
-    {
-      name: "Min",
+  const rentAcc = agg.seriesData["networth_rent"];
+  if (!rentAcc) return;
+  const rentDerived = deriveSeries(rentAcc, T);
+
+  // Buy strategies to show as delta lines
+  const buyStratDefs = [
+    { key: "buy_keep1st",  suffix: "_buy",                 label: STRATEGY_LABELS.buy_keep1st  },
+    { key: "buy_repay1st", suffix: "_buy_repay_first",      label: STRATEGY_LABELS.buy_repay1st },
+    { key: "buy_let_trig", suffix: "_buy_let_trigger",      label: STRATEGY_LABELS.buy_let_trig },
+    { key: "buy_let_imm",  suffix: "_buy_let_immediate",    label: STRATEGY_LABELS.buy_let_imm  },
+  ];
+
+  const series = [];
+  let firstVisibleAdded = false;
+
+  for (const strat of buyStratDefs) {
+    if (!visibility[strat.key]) continue;
+    const buyAcc = agg.seriesData["networth" + strat.suffix];
+    if (!buyAcc) continue;
+    const buyDerived = deriveSeries(buyAcc, T);
+
+    const deltaMean = buyDerived.mean.map((v, t) =>
+      v == null || rentDerived.mean[t] == null ? null : v - rentDerived.mean[t]
+    );
+    const colour = COLORS[strat.key];
+
+    if (visibility.bands) {
+      // Approximate envelope: pessimistic lower bound, optimistic upper bound
+      const deltaMin = buyDerived.min.map((v, t) =>
+        v == null || rentDerived.max[t] == null ? null : v - rentDerived.max[t]
+      );
+      const deltaMax = buyDerived.max.map((v, t) =>
+        v == null || rentDerived.min[t] == null ? null : v - rentDerived.min[t]
+      );
+      const bandDiff = deltaMin.map((v, i) =>
+        v == null || deltaMax[i] == null ? null : deltaMax[i] - v
+      );
+
+      series.push({
+        name: strat.label + "__band",
+        type: "line",
+        data: deltaMin,
+        stack: "delta-band-" + strat.key,
+        lineStyle: { opacity: 0 },
+        symbol: "none",
+        silent: true,
+        tooltip: { show: false },
+        z: 1,
+      });
+      series.push({
+        name: strat.label + "__band",
+        type: "line",
+        data: bandDiff,
+        stack: "delta-band-" + strat.key,
+        lineStyle: { opacity: 0 },
+        areaStyle: { color: hexToRgba(colour, 0.1) },
+        symbol: "none",
+        silent: true,
+        tooltip: { show: false },
+        z: 1,
+      });
+    }
+
+    const meanSeries = {
+      name: strat.label,
       type: "line",
-      data: delta.min,
-      stack: "delta-band",
-      lineStyle: { opacity: 0 },
-      symbol: "none",
-      silent: true,
-      tooltip: { show: false },
-      z: 1,
-    },
-    {
-      name: "Max\u2212Min",
-      type: "line",
-      data: delta.min.map((v, i) => (v == null || delta.max[i] == null ? null : delta.max[i] - v)),
-      stack: "delta-band",
-      lineStyle: { opacity: 0 },
-      areaStyle: { color: hexToRgba("#FF7F0E", 0.1) },
-      symbol: "none",
-      silent: true,
-      tooltip: { show: false },
-      z: 1,
-    },
-    {
-      name: "Buy\u2212Rent Delta",
-      type: "line",
-      data: delta.mean,
-      lineStyle: { color: "#FF7F0E", width: 2.2 },
-      itemStyle: { color: "#FF7F0E" },
+      data: deltaMean,
+      lineStyle: { color: colour, width: 2.2 },
+      itemStyle: { color: colour },
       smooth: 0.25,
       symbol: "none",
       showSymbol: false,
       z: 3,
-      markLine: {
+    };
+
+    // Attach zero markLine to the first visible strategy's mean series
+    if (!firstVisibleAdded) {
+      meanSeries.markLine = {
         symbol: "none",
         silent: true,
         data: [{ yAxis: 0, lineStyle: { color: tc.textMuted, type: "dashed", width: 1 } }],
-      },
-    },
-  ];
+      };
+      firstVisibleAdded = true;
+    }
 
+    series.push(meanSeries);
+  }
+
+  // Attach event markers to first silent series if present
   const mkLine = eventsToMarkLine(events);
   const mkArea = eventsToMarkArea(events);
-  // Attach events to the first silent series so they show behind the line
-  if (mkLine) series[0].markLine = mkLine;
-  if (mkArea) series[0].markArea = mkArea;
+  const firstSilent = series.find(s => s.silent);
+  if (firstSilent) {
+    if (mkLine) firstSilent.markLine = mkLine;
+    if (mkArea) firstSilent.markArea = mkArea;
+  } else if (series.length > 0) {
+    if (mkLine) series[0].markLine = mkLine;
+    if (mkArea) series[0].markArea = mkArea;
+  }
+
+  // Custom tooltip: show all visible strategies + optional min/max
+  const tooltip = {
+    ...tooltipCommon(tc),
+    formatter: (params) => {
+      if (!params || !params.length) return "";
+      const year = params[0].axisValueLabel ?? params[0].axisValue;
+      const t = parseInt(year);
+      const rows = params
+        .filter(p => !p.seriesName?.endsWith("__band") && p.value != null && p.componentType !== "markLine")
+        .map(p => {
+          const colour = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:6px;flex-shrink:0;"></span>`;
+          const meanStr = fmtCHF(p.value);
+          let minMaxHtml = "";
+          if (visibility.bands && lastAgg) {
+            const key = LABEL_TO_KEY[p.seriesName];
+            if (key && STRAT_KEY_TO_SUFFIX[key]) {
+              const buyAcc = lastAgg.seriesData["networth" + STRAT_KEY_TO_SUFFIX[key]];
+              const rentAcc2 = lastAgg.seriesData["networth_rent"];
+              if (buyAcc && rentAcc2 && buyAcc.count[t] > 1) {
+                const dMin = buyAcc.min[t] - rentAcc2.max[t];
+                const dMax = buyAcc.max[t] - rentAcc2.min[t];
+                if (isFinite(dMin) && isFinite(dMax) && dMin !== dMax) {
+                  minMaxHtml = `<div style="padding-left:15px;color:#888;font-size:10px;margin-top:1px;">↕ ${fmtCHF(dMin)} \u2013 ${fmtCHF(dMax)}</div>`;
+                }
+              }
+            }
+          }
+          return `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span style="display:flex;align-items:center;">${colour}${p.seriesName}</span><b style="margin-left:8px;">${meanStr}</b></div>${minMaxHtml}`;
+        })
+        .join("");
+      return `<div style="font-weight:600;margin-bottom:4px;">Year ${year}</div>${rows}`;
+    },
+  };
 
   const axes = axisCommon(tc);
   axes.xAxis.data = years;
@@ -577,7 +701,7 @@ function renderDeltaChart(agg, events) {
     animation: true,
     animationDuration: 300,
     grid: gridOption(false),
-    tooltip: tooltipCommon(tc),
+    tooltip,
     xAxis: axes.xAxis,
     yAxis: axes.yAxis,
     dataZoom: dataZoomCommon(false),
@@ -703,12 +827,23 @@ function renderWinShareChart(agg, events) {
   }, { notMerge: true });
 }
 
-function renderHistogram(agg) {
+export function renderHistogram(agg, year) {
   const tc = themeColors();
-  const nBins = agg.histBins.length;
+
+  // Resolve histogram data for the requested year
+  const t = (year != null && year >= 0) ? Math.min(year, agg.T) : agg.T;
+  let histData;
+  if (agg.histPerYear && agg.histPerYear[t]) {
+    histData = agg.histPerYear[t];
+  } else {
+    // Fallback: use the legacy final-year histogram
+    histData = { bins: agg.histBins, min: agg.histMin, max: agg.histMax, binWidth: agg.histBinWidth };
+  }
+
+  const nBins = histData.bins.length;
   const binLabels = [];
   for (let i = 0; i < nBins; i++) {
-    const mid = agg.histMin + (i + 0.5) * agg.histBinWidth;
+    const mid = histData.min + (i + 0.5) * histData.binWidth;
     binLabels.push(fmtCHF(mid));
   }
 
@@ -716,8 +851,8 @@ function renderHistogram(agg) {
     {
       name: "Count",
       type: "bar",
-      data: Array.from(agg.histBins).map((count, i) => {
-        const mid = agg.histMin + (i + 0.5) * agg.histBinWidth;
+      data: Array.from(histData.bins).map((count, i) => {
+        const mid = histData.min + (i + 0.5) * histData.binWidth;
         return {
           value: count,
           itemStyle: {
@@ -786,21 +921,26 @@ export function renderSummary(agg) {
     <div class="stat-card">
       <div class="stat-label">Scenarios</div>
       <div class="stat-value">${n.toLocaleString()}</div>
+      <div class="stat-detail">&nbsp;</div>
+      <div class="stat-desc">Total parameter combinations simulated across the sweep grid. Higher counts improve statistical reliability of the results.</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Buy Win Rate</div>
       <div class="stat-value">${((buyWins / n) * 100).toFixed(1)}%</div>
-      <div class="stat-detail">${buyWins.toLocaleString()} of ${n.toLocaleString()}</div>
+      <div class="stat-detail">${buyWins.toLocaleString()} of ${n.toLocaleString()} scenarios</div>
+      <div class="stat-desc">Share of scenarios where buying ends up wealthier than renting at the final year. Above 50% means buying wins in most parameter combinations.</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Mean End Delta</div>
       <div class="stat-value">${fmtCHF(meanDelta)} CHF</div>
       <div class="stat-detail">min: ${fmtCHF(agg.deltaMin)} / max: ${fmtCHF(agg.deltaMax)}</div>
+      <div class="stat-desc">Average net worth difference (best buy minus rent) at the final simulation year, in today's CHF. Positive = buying ahead on average; negative = renting ahead.</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Mean Breakeven</div>
       <div class="stat-value">${meanBE >= 0 ? meanBE.toFixed(1) + " years" : "Never"}</div>
       <div class="stat-detail">${agg.beCount.toLocaleString()} of ${n.toLocaleString()} runs break even</div>
+      <div class="stat-desc">Average number of years until buying overtakes renting in net worth. Scenarios where buying never catches up are excluded from the average.</div>
     </div>
   `;
 }

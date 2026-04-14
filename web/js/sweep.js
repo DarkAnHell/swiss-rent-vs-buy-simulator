@@ -133,6 +133,7 @@ function mergeAggregates(a, b) {
     histMin: Math.min(a.histMin, b.histMin),
     histMax: Math.max(a.histMax, b.histMax),
     histBinWidth: 0,
+    histPerYear: null,
   };
 
   // Merge series accumulators
@@ -140,7 +141,7 @@ function mergeAggregates(a, b) {
     merged.seriesData[key] = mergeSeriesAcc(a.seriesData[key], b.seriesData[key], T);
   }
 
-  // Merge histograms: re-bin both into the unified [histMin, histMax] range
+  // Merge final-year histograms: re-bin both into the unified [histMin, histMax] range
   const nBins = a.histBins.length;
   const binWidth = (merged.histMax - merged.histMin) / nBins || 1;
   merged.histBinWidth = binWidth;
@@ -163,6 +164,32 @@ function mergeAggregates(a, b) {
     }
   }
   merged.histBins = bins;
+
+  // Merge per-year histograms
+  if (a.histPerYear && b.histPerYear && a.histPerYear.length === b.histPerYear.length) {
+    merged.histPerYear = a.histPerYear.map((ha, t) => {
+      const hb = b.histPerYear[t];
+      const newMin = Math.min(ha.min, hb.min);
+      const newMax = Math.max(ha.max, hb.max);
+      const newBinWidth = (newMax - newMin) / nBins || 1;
+      const yearBins = new Array(nBins).fill(0);
+      for (let i = 0; i < nBins; i++) {
+        if (ha.bins[i] > 0) {
+          const mid = ha.min + (i + 0.5) * ha.binWidth;
+          const idx = Math.min(nBins - 1, Math.max(0, Math.floor((mid - newMin) / newBinWidth)));
+          yearBins[idx] += ha.bins[i];
+        }
+      }
+      for (let i = 0; i < nBins; i++) {
+        if (hb.bins[i] > 0) {
+          const mid = hb.min + (i + 0.5) * hb.binWidth;
+          const idx = Math.min(nBins - 1, Math.max(0, Math.floor((mid - newMin) / newBinWidth)));
+          yearBins[idx] += hb.bins[i];
+        }
+      }
+      return { bins: yearBins, min: newMin, max: newMax, binWidth: newBinWidth };
+    });
+  }
 
   return merged;
 }
@@ -307,6 +334,18 @@ function buildSingleResultAggregate(tr, diff, be, T) {
     if (d >= 0) buyWinCount[t] = 1;
   }
 
+  // Build per-year histograms for single result (each year: 1 scenario)
+  const histPerYear = [];
+  for (let t = 0; t <= T; t++) {
+    const d = deltaAcc.sum[t]; // = deltaAcc.min[t] = deltaAcc.max[t] for single run
+    histPerYear.push({
+      bins: [1, ...new Array(39).fill(0)],
+      min: d,
+      max: d,
+      binWidth: 1,
+    });
+  }
+
   return {
     T,
     totalCount: 1,
@@ -323,5 +362,6 @@ function buildSingleResultAggregate(tr, diff, be, T) {
     histMin: diff,
     histMax: diff,
     histBinWidth: 1,
+    histPerYear,
   };
 }
