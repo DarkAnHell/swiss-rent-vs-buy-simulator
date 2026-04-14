@@ -173,8 +173,8 @@ export function computeOwnerYear(p, plan, year, mortgageBegin, homeValue, rentGr
   const prop_tax = homeValue * p.property_tax_rate;
   const other_owner = p.other_owner_costs * inflationFactor;
 
-  // Wealth tax on property (assessed value)
-  const property_wealth_tax = homeValue * p.property_tax_assessment_pct * p.wealth_tax_rate;
+  // Wealth tax on property: Swiss Vermögenssteuer is on NET wealth (assessed value minus mortgage)
+  const property_wealth_tax = Math.max(0.0, homeValue * p.property_tax_assessment_pct - mr.mortgage_end) * p.wealth_tax_rate;
 
   // Tax impact: imputed rent minus deductions (including capex)
   const imputed_rent = p.imputed_rent_pct * rentGross;
@@ -209,7 +209,8 @@ export function computeLandlordYear(p, plan, year, mortgageBegin, homeValue, ren
   const maintenance = homeValue * p.maintenance_rate;
   const prop_tax = homeValue * p.property_tax_rate;
   const other_owner = p.other_owner_costs * inflationFactor;
-  const property_wealth_tax = homeValue * p.property_tax_assessment_pct * p.wealth_tax_rate;
+  // Wealth tax on property: Swiss Vermögenssteuer is on NET wealth (assessed value minus mortgage)
+  const property_wealth_tax = Math.max(0.0, homeValue * p.property_tax_assessment_pct - mr.mortgage_end) * p.wealth_tax_rate;
 
   const rent_out_effective = p.rent_out_monthly_multiplier * rentGross * (1.0 - p.rent_out_vacancy_rate);
   const rent_out_mgmt = rent_out_effective * p.rent_out_management_fee_rate;
@@ -639,13 +640,18 @@ export function simulate(p) {
   const maintenance = new Float64Array(N);
   const other_owner = new Float64Array(N);
   const prop_tax = new Float64Array(N);
-  const property_wealth_tax = new Float64Array(N);
+  // Wealth tax: Swiss Vermögenssteuer is on NET wealth (assessed value minus outstanding mortgage).
+  // Strategy-specific because the repay-first plan has a different (lower) mortgage balance.
+  const property_wealth_tax = new Float64Array(N);    // default buy & buy-to-let plans
+  const property_wealth_tax_r1 = new Float64Array(N); // repay-first plan
 
   for (let t = 0; t < N; t++) {
     maintenance[t] = home_value[t] * p.maintenance_rate;
     other_owner[t] = p.other_owner_costs * infl[t];
     prop_tax[t] = home_value[t] * p.property_tax_rate;
-    property_wealth_tax[t] = home_value[t] * p.property_tax_assessment_pct * p.wealth_tax_rate;
+    const assessed = home_value[t] * p.property_tax_assessment_pct;
+    property_wealth_tax[t]    = Math.max(0.0, assessed - mortgage_bal[t])    * p.wealth_tax_rate;
+    property_wealth_tax_r1[t] = Math.max(0.0, assessed - mortgage_bal_r1[t]) * p.wealth_tax_rate;
   }
 
   // Tax impact (Swiss default plan: only 2nd mortgage amortized)
@@ -699,7 +705,7 @@ export function simulate(p) {
     );
     buy_housing_cash_out_r1[t] = (
       interest_arr_r1[t] + principal_arr_r1[t] + maintenance[t] + other_owner[t]
-      + prop_tax[t] + capex_arr[t] + tax_impact_r1[t] + property_wealth_tax[t]
+      + prop_tax[t] + capex_arr[t] + tax_impact_r1[t] + property_wealth_tax_r1[t]
     );
   }
 
