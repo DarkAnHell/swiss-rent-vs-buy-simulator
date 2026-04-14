@@ -56,6 +56,12 @@ homeGrowthFactor[t] = (1 + home_price_growth) * (isCrashYear ? (1 - housing_cras
 
 Crash years occur periodically every `housing_crash_interval_years`.
 
+Both `homeGrowthFactorForYear` and `marketGrowthFactorForYear` clamp the result to
+`Math.max(0.0, factor)`, so an asset value can reach zero but never go negative. In
+practice, with the default sweep ranges (`crash_pct ≤ 0.95`, `growth ≥ 0.01`), the
+product `(1 + growth) * (1 - crash_pct) ≥ 0.051 > 0`, so the clamp never fires under
+normal configurations — it is purely a defensive safeguard.
+
 ### 2.4 Rent Path
 
 ```
@@ -89,13 +95,23 @@ The blended rate mixes fixed and variable portions:
 blendedRate[t] = fixed_share * fixedRate[t] + (1 - fixed_share) * variableRate[t]
 ```
 
+The `fixedRateForYear` function has a multi-phase cycle:
+1. **Years 1 – `mortgage_fixed_years`**: use `mortgage_fixed_rate`.
+2. **After that, if `mortgage_refix_years > 0`**: the rate refixes to `mortgage_refix_rate`
+   every `mortgage_refix_years` years in a repeating cycle. The code always returns
+   `mortgage_refix_rate` once past the initial fixed period (the branch to
+   `mortgage_variable_rate_long` is unreachable when `mortgage_refix_years > 0`), so in
+   practice the long-term mortgage cost equals `mortgage_refix_rate`.
+3. **If `mortgage_refix_years == 0`**: falls through to `mortgage_variable_rate_long`.
+
 ### 2.6 Owner Housing Cash-Out (Buy strategies)
 
 ```
 maintenance[t] = home_value[t] * maintenance_rate
 prop_tax[t] = home_value[t] * property_tax_rate
 other_owner[t] = other_owner_costs * inflationFactor[t]
-property_wealth_tax[t] = home_value[t] * property_tax_assessment_pct * wealth_tax_rate
+// Swiss Vermögenssteuer is on NET wealth: assessed value minus outstanding mortgage
+property_wealth_tax[t] = max(0, home_value[t] * property_tax_assessment_pct - mortgageEnd[t]) * wealth_tax_rate
 
 // Tax impact (Swiss Eigenmietwert system)
 imputed_rent[t] = imputed_rent_pct * rent_annual_gross[t]
@@ -107,6 +123,18 @@ tax_impact[t] = taxable_imputed[t] * marginal_tax_rate + annual_net_tax_impact *
 housing_cash_out[t] = interest[t] + principal[t] + maintenance[t] + other_owner[t]
                     + prop_tax[t] + capex[t] + tax_impact[t] + property_wealth_tax[t]
 ```
+
+**Note — strategy-specific wealth tax**: because the `repay-1st` strategy amortizes the
+entire mortgage faster, its `mortgageEnd[t]` is lower than the Swiss-default strategy,
+so its `property_wealth_tax[t]` may differ. The simulation computes separate arrays for
+each strategy.
+
+**Eigenmietwert abolition** (`imputed_rent_abolition_year`, default `9999`): if and when
+Switzerland abolishes the imputed-rent system, both sides of the Eigenmietwert ledger
+disappear simultaneously — the simulated imputed income AND all related deductions
+(mortgage interest, maintenance, capex) are zeroed. The parameter lets users model
+different abolition timelines. Only `annual_net_tax_impact * inflationFactor[t]` remains
+as a residual tax adjustment after abolition.
 
 ### 2.7 Landlord Cash-Out (Buy-to-let strategies)
 
@@ -174,6 +202,12 @@ inv[t] = investStep(inv[t-1], net_cashflow[t] + extra_contrib[t], t, p)
 `extra_contrib` includes Pillar 2 annuity income, Pillar 3a lump-sum at retirement,
 and Pillar 3a tax deduction benefit.
 
+**Year 0 timing convention**: `investStep` applies one full year of market return to
+the opening balance on year 0 (the purchase/move-in day). Strictly, no return should
+accrue on day zero. Since all strategies receive identical year-0 treatment, cross-strategy
+comparisons are unaffected, but absolute net-worth levels are slightly overstated relative
+to a strict end-of-year convention.
+
 ### 2.10 CapEx (Capital Expenditures)
 
 ```
@@ -186,11 +220,18 @@ If selling the home at year `t`:
 ```
 selling_costs = home_value[t] * selling_cost_pct + selling_cost_fixed
 gain = max(0, home_value[t] - purchase_price - buying_costs - selling_costs - cumulative_capex)
-capital_gains_tax = gain * cap_gains_rate * schedule_multiplier(canton, years, gain)
+cg_rate = cap_gains_tax_rate_base * schedule_multiplier(cap_gains_schedule_key, years, gain)
+// cap_gains_tax is a flat additional tax levied whenever gain > 0 (default 0)
+capital_gains_tax = gain > 0 ? (gain * cg_rate + cap_gains_tax) : 0
 sale_proceeds = home_value[t] - selling_costs - capital_gains_tax - mortgageEnd[t]
              - pillar2_outstanding + pillar2_tax_refund
              - pillar3a_outstanding + pillar3a_tax_refund
 ```
+
+`cap_gains_tax` (default `0.0`) is an unconditional flat amount added on top of the
+percentage-based capital gains tax whenever a positive gain exists. It can be used to
+model canton-specific fixed registration or notary fees that scale with the transaction
+rather than the gain percentage.
 
 ### 2.12 Net Worth
 
@@ -219,6 +260,12 @@ p2[t] = p2[t-1] * (1 + pillar2_rate) + pillar2_contrib
 annual_annuity = p2[retirement-1] * (1 + pillar2_rate) * conversion_rate
 p2[retirement..] = 0   // balance consumed, annual annuity paid out instead
 ```
+
+The annuity is a **fixed nominal amount** computed once at retirement. This is
+economically correct: Swiss BVG (Berufliche Vorsorge) annuities are not legally
+required to be inflation-adjusted and most funds do not adjust them. As a result, the
+real purchasing power of the Pillar 2 income erodes over a 20–30 year retirement —
+an important factor for long-horizon projections.
 
 ### 2.14 Pillar 3a (Private Pension)
 
@@ -417,10 +464,80 @@ to negative balances instead of the market return. This would require:
 | File | Function | Change |
 |------|----------|--------|
 | `web/js/model.js` | `investStep` (line ~243) | **APPLIED** Fix A: clamp market dynamics to non-negative balances |
-
-That's it — a single function change. The fix is minimal, surgical, and addresses all
-three bugs simultaneously.
+| `web/js/model.js` | `computeOwnerYear`, `computeLandlordYear`, `simulate()` | **APPLIED** Wealth tax deducts outstanding mortgage balance |
 
 **Status: FIXED** — Fix A was applied on 2026-04-14. The function now branches on the
 sign of `prev`: positive balances follow the original market-growth + tax logic; negative
 balances simply accumulate additively (`prev + contribution`) with no market dynamics.
+
+The wealth tax fix was applied on 2026-04-14. All three computation sites now use
+`max(0, assessed_value - mortgage_end) * wealth_tax_rate`.
+
+---
+
+## 7. Known Limitations
+
+These are intentional simplifications. They are not bugs, but users should understand
+the assumptions they imply.
+
+### 7.1 Fix A creates a non-physical kink at zero investment balance
+
+When the investment balance crosses from positive to negative, there is a regime
+discontinuity: at `+1 CHF` the balance earns market return; at `-1 CHF` it earns exactly
+0%. This means a strategy that briefly dips below zero and recovers is artificially
+subsidised relative to a model that charges a borrowing rate. The alternative (Fix B:
+apply a configurable borrowing rate to negative balances) is left as a future enhancement.
+
+### 7.2 Parameter sweeps can produce economically impossible scenarios
+
+The sweep ranges for `inflation_rate` (1–5%), `rent_growth` (1–10%), and
+`home_price_growth` (1–10%) are fully decoupled. In reality these are linked:
+
+- Long-run rent growth tracks inflation + real economic growth (typically inflation + 0–2%).
+- Home prices are tied to rents via the price-to-rent ratio, which is mean-reverting.
+
+A scenario with `inflation = 1%`, `rent_growth = 10%`, `home_price_growth = 1%` implies
+rents growing 9% above inflation for 60 years — economically implausible. Such
+combinations exist in the Cartesian-product sweep and can pull percentile bands toward
+extreme values. Users should treat the outer percentiles with caution.
+
+### 7.3 Net worth shows a step drop at retirement when Pillar 2 is annuitised
+
+When Pillar 2 is converted to an annuity at retirement, the balance (`p2[t]`) is set to
+zero and replaced by an annual income stream. The net-worth formula records the balance
+as zero, so the chart shows a discontinuous drop equal to the Pillar 2 balance even
+though an economically equivalent annuity has been acquired. The absolute trajectory is
+misleading at retirement, though cross-strategy comparisons remain approximately valid
+(both strategies experience a similar drop).
+
+### 7.4 Crashes are periodic and deterministic, not stochastic
+
+Crashes fire every `stock_crash_interval_years` (or `housing_crash_interval_years`) like
+clockwork. This understates tail risk: in reality crashes are unpredictable, so a run of
+bad luck could coincide with retirement, large capital withdrawals, or a home sale. The
+fixed schedule also means the number of crashes over any horizon is deterministic and
+crash timing never overlaps with year 0 (excluded by design). The sweep provides
+sensitivity across crash magnitude but not timing uncertainty.
+
+### 7.5 Stock and housing crashes are uncorrelated
+
+Stock crashes (every `stock_crash_interval_years`) and housing crashes (every
+`housing_crash_interval_years`) are scheduled independently. Historically, the worst
+outcomes occur when both crash together (e.g., 2008–2009). Incidental overlap is possible
+(e.g., both on year 30 if intervals are 10 and 15) but is not systematically modelled.
+
+### 7.6 "Repay 1st mortgage" strategy imposes an extreme cash burden
+
+With defaults (1 M purchase, 200 k down, 800 k mortgage, 15-year amortisation), this
+strategy repays the full 800 k in 15 years: ≈ CHF 53,333/year in principal alone, plus
+interest. The Swiss norm is to amortise only the 2nd-mortgage slice (≈ CHF 10,000/year).
+This strategy is included to show the long-term wealth benefit of aggressive deleveraging,
+but the near-term cash flow is dramatically tighter than the other strategies.
+
+### 7.7 Rent deposit does not grow with rent increases
+
+The rent deposit (3 months' rent) is computed once at year 0 from the initial monthly
+rent and thereafter only grows at `rent_deposit_interest_rate` (default 0%). In practice,
+Swiss landlords can request an increased deposit as rent rises. The financial impact is
+small (3 months' rent), but the deposit balance understates the true security held by the
+landlord over long horizons with high rent growth.
