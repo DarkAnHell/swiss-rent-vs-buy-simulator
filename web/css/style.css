@@ -745,63 +745,23 @@
   color: var(--color-header-text);
 }
 
-/* ===== Config Level Toggle (Basic / Advanced) ===== */
-.config-level-toggle {
-  display: inline-flex;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 12px;
-  width: 100%;
-}
-
-.config-level-toggle button {
-  flex: 1;
+/* ===== Header Secondary Buttons (Export / Import) ===== */
+.btn-header-secondary {
   font-size: 12px;
   font-weight: 500;
-  padding: 6px 12px;
-  border: none;
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-
-.config-level-toggle button.active {
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.config-level-toggle button:hover:not(.active) {
-  background: var(--color-surface);
-}
-
-/* ===== Preset Export / Import ===== */
-.config-preset-actions {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.config-preset-actions button {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 0;
-  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,0.25);
   border-radius: 4px;
   background: transparent;
-  color: var(--color-text);
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--color-header-text);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-  user-select: none;
+  transition: background var(--transition), border-color var(--transition);
+  white-space: nowrap;
 }
 
-.config-preset-actions button:hover {
-  background: var(--color-surface);
+.btn-header-secondary:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.4);
 }
 
 
@@ -870,18 +830,94 @@
   background: rgba(217, 119, 6, 0.08) !important;
 }
 
-/* Hide advanced params in basic mode */
-.config-panel[data-config-mode="basic"] .param-row[data-level="advanced"] {
+/* ===== Advanced param visual distinction ===== */
+.param-row[data-advanced] {
+  background: rgba(59, 130, 246, 0.04);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-left: -6px;
+  margin-right: -6px;
+}
+
+[data-theme="dark"] .param-row[data-advanced] {
+  background: rgba(76, 139, 245, 0.07);
+}
+
+/* ===== Config Subgroup Label ===== */
+.config-subgroup-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 6px 0 2px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+}
+
+.config-subgroup-label:first-child {
+  border-top: none;
+  margin-top: 0;
+}
+
+/* ===== Inflation-link toggle row ===== */
+.inflate-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  padding: 3px 0 0;
+}
+
+.inflate-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.inflate-label input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.custom-rate-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.custom-rate-wrap.hidden {
   display: none;
 }
 
-/* Hide entire groups that have no basic params */
-.config-panel[data-config-mode="basic"] .config-group:not(:has(.param-row[data-level="basic"])) {
-  display: none;
+.custom-rate-wrap input[type="number"] {
+  width: 60px;
+  padding: 2px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
-/* Basic param empty-field placeholder styling */
-.param-row[data-level="basic"] input::placeholder {
+.custom-rate-wrap input[type="number"]:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* Basic param placeholder styling */
+.param-row input::placeholder {
   color: var(--color-muted, #999);
   font-style: italic;
 }

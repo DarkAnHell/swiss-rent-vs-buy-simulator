@@ -279,7 +279,7 @@ const configToggle = document.getElementById("config-toggle-btn");
 const configPanel = document.getElementById("config-panel");
 const themeToggle = document.getElementById("theme-toggle");
 const langSelect = document.getElementById("lang-select");
-const configLevelToggle = document.getElementById("config-level-toggle");
+// configLevelToggle removed — Basic/Advanced toggle replaced by visual tinting
 const btnExportPreset = document.getElementById("btn-export-preset");
 const btnImportPreset = document.getElementById("btn-import-preset");
 const importPresetInput = document.getElementById("import-preset-input");
@@ -297,7 +297,8 @@ function readConfigFromUI() {
   for (const row of rows) {
     const key = row.dataset.param;
 
-    const checkbox = row.querySelector('input[type="checkbox"]');
+    // Param-level boolean: main checkbox has data-field="value"
+    const checkbox = row.querySelector('input[type="checkbox"][data-field="value"]');
     if (checkbox) {
       config[key] = checkbox.checked;
       continue;
@@ -327,9 +328,26 @@ function readConfigFromUI() {
         config[key] = lin(minVal, maxVal, nVal);
       }
     }
+
+    // Read inflate row if present
+    const inflateRow = row.querySelector('.inflate-row');
+    if (inflateRow) readInflateRow(inflateRow, config);
   }
 
   return config;
+}
+
+function readInflateRow(inflateRow, config) {
+  const inflateName = inflateRow.dataset.inflateParam;
+  if (!inflateName) return;
+  const inflateCheck = inflateRow.querySelector('input[data-field="inflate"]');
+  const growthInput  = inflateRow.querySelector('input[data-field="growth_rate"]');
+  if (inflateCheck) config[inflateName] = inflateCheck.checked;
+  if (growthInput) {
+    const growthKey = inflateName.replace('_inflate', '_growth_rate');
+    const growthVal = parseFloat(growthInput.value);
+    config[growthKey] = isFinite(growthVal) ? growthVal / 100 : (DEFAULT_CONFIG[growthKey] ?? 0.01);
+  }
 }
 
 /**
@@ -345,7 +363,7 @@ function populateUI(config, forceValues = false) {
     const value = config[key];
     if (value === undefined) continue;
 
-    const checkbox = row.querySelector('input[type="checkbox"]');
+    const checkbox = row.querySelector('input[type="checkbox"][data-field="value"]');
     if (checkbox) {
       checkbox.checked = !!value;
       continue;
@@ -395,6 +413,26 @@ function populateUI(config, forceValues = false) {
         }
       }
     }
+
+    populateInflateRow(row, config);
+  }
+}
+
+function populateInflateRow(row, config) {
+  const inflateRow = row.querySelector('.inflate-row');
+  if (!inflateRow) return;
+  const inflateName = inflateRow.dataset.inflateParam;
+  if (!inflateName) return;
+  const inflateCheck = inflateRow.querySelector('input[data-field="inflate"]');
+  const growthInput  = inflateRow.querySelector('input[data-field="growth_rate"]');
+  const customWrap   = inflateRow.querySelector('.custom-rate-wrap');
+  const inflateVal   = config[inflateName] !== undefined ? config[inflateName] : true;
+  if (inflateCheck) inflateCheck.checked = inflateVal;
+  if (customWrap)   customWrap.classList.toggle('hidden', inflateVal);
+  if (growthInput) {
+    const growthKey = inflateName.replace('_inflate', '_growth_rate');
+    const growthVal = config[growthKey];
+    growthInput.value = growthVal !== undefined ? (growthVal * 100).toFixed(2) : '';
   }
 }
 
@@ -721,43 +759,6 @@ function initUnitBadges() {
   });
 }
 
-// ---- Config level (Basic / Advanced) ----
-
-function initConfigLevels() {
-  // Tag every param-row as basic or advanced
-  document.querySelectorAll(".param-row[data-param]").forEach((row) => {
-    const param = row.dataset.param;
-    row.dataset.level = param in BASIC_PARAMS ? "basic" : "advanced";
-  });
-}
-
-function initConfigLevelToggle() {
-  const saved = localStorage.getItem("configLevel") || "basic";
-  applyConfigLevel(saved);
-
-  configLevelToggle?.querySelectorAll("button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      applyConfigLevel(btn.dataset.level);
-    });
-  });
-}
-
-function applyConfigLevel(level) {
-  if (configPanel) configPanel.dataset.configMode = level;
-  localStorage.setItem("configLevel", level);
-  configLevelToggle?.querySelectorAll("button").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.level === level);
-  });
-
-  // In basic mode, auto-open visible groups so users see the fields
-  if (level === "basic") {
-    document.querySelectorAll(".config-group").forEach((group) => {
-      const hasBasic = group.querySelector('.param-row[data-level="basic"]');
-      if (hasBasic) group.open = true;
-    });
-  }
-}
-
 // ---- Theme ----
 
 function initTheme() {
@@ -856,6 +857,23 @@ function wireLegendToggles() {
   }
 }
 
+// ---- Inflate toggles ----
+
+function wireInflateToggles() {
+  document.querySelectorAll('.inflate-row').forEach((inflateRow) => {
+    const check = inflateRow.querySelector('input[data-field="inflate"]');
+    const wrap  = inflateRow.querySelector('.custom-rate-wrap');
+    if (!check || !wrap) return;
+    check.addEventListener('change', () => {
+      wrap.classList.toggle('hidden', check.checked);
+      updateComboCount();
+    });
+    // Wire growth_rate input changes to update combo count
+    const growthInput = inflateRow.querySelector('input[data-field="growth_rate"]');
+    growthInput?.addEventListener('change', updateComboCount);
+  });
+}
+
 // ---- Export / Import preset ----
 
 function exportPreset() {
@@ -903,13 +921,11 @@ function importPreset(file) {
 // ---- Init ----
 
 function init() {
-  initConfigLevels();
   populateUI(DEFAULT_CONFIG);
   injectTooltips();
   initUnitBadges();
   initTheme();
   initLang();
-  initConfigLevelToggle();
 
   if (cantonSelect) {
     cantonSelect.value = currentCanton;
@@ -920,6 +936,7 @@ function init() {
   }
 
   wireModeToggles();
+  wireInflateToggles();
   wireDownloadButtons();
   wireLegendToggles();
   wireHistogramSlider();

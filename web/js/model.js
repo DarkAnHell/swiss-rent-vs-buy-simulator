@@ -171,7 +171,8 @@ export function computeOwnerYear(p, plan, year, mortgageBegin, homeValue, rentGr
   const mr = computeMortgageYear(p, plan, year, mortgageBegin);
   const maintenance = homeValue * p.maintenance_rate;
   const prop_tax = homeValue * p.property_tax_rate;
-  const other_owner = p.other_owner_costs * inflationFactor;
+  const other_owner_f = (p.other_owner_costs_inflate !== false) ? inflationFactor : Math.pow(1.0 + (p.other_owner_costs_growth_rate || 0), year);
+  const other_owner = p.other_owner_costs * other_owner_f;
 
   // Wealth tax on property: Swiss Vermögenssteuer is on NET wealth (assessed value minus mortgage)
   const property_wealth_tax = Math.max(0.0, homeValue * p.property_tax_assessment_pct - mr.mortgage_end) * p.wealth_tax_rate;
@@ -182,7 +183,8 @@ export function computeOwnerYear(p, plan, year, mortgageBegin, homeValue, rentGr
   const interest_deduction = mr.interest * p.mortgage_interest_deductible_pct;
   const capex_deduction = capexAmount;
   const taxable_imputed = imputed_rent - interest_deduction - maintenance_deduction - capex_deduction;
-  const tax_impact = taxable_imputed * p.marginal_tax_rate + p.annual_net_tax_impact * inflationFactor;
+  const net_tax_f = (p.annual_net_tax_impact_inflate !== false) ? inflationFactor : Math.pow(1.0 + (p.annual_net_tax_impact_growth_rate || 0), year);
+  const tax_impact = taxable_imputed * p.marginal_tax_rate + p.annual_net_tax_impact * net_tax_f;
 
   const housing_cash_out = (
     mr.interest + mr.principal + maintenance + other_owner
@@ -208,13 +210,15 @@ export function computeLandlordYear(p, plan, year, mortgageBegin, homeValue, ren
   const mr = computeMortgageYear(p, plan, year, mortgageBegin);
   const maintenance = homeValue * p.maintenance_rate;
   const prop_tax = homeValue * p.property_tax_rate;
-  const other_owner = p.other_owner_costs * inflationFactor;
+  const other_owner_f = (p.other_owner_costs_inflate !== false) ? inflationFactor : Math.pow(1.0 + (p.other_owner_costs_growth_rate || 0), year);
+  const other_owner = p.other_owner_costs * other_owner_f;
   // Wealth tax on property: Swiss Vermögenssteuer is on NET wealth (assessed value minus mortgage)
   const property_wealth_tax = Math.max(0.0, homeValue * p.property_tax_assessment_pct - mr.mortgage_end) * p.wealth_tax_rate;
 
   const rent_out_effective = p.rent_out_monthly_multiplier * rentGross * (1.0 - p.rent_out_vacancy_rate);
   const rent_out_mgmt = rent_out_effective * p.rent_out_management_fee_rate;
-  const rent_out_other = p.rent_out_other_costs * inflationFactor;
+  const rent_out_other_f = (p.rent_out_other_costs_inflate !== false) ? inflationFactor : Math.pow(1.0 + (p.rent_out_other_costs_growth_rate || 0), year);
+  const rent_out_other = p.rent_out_other_costs * rent_out_other_f;
   const rent_out_taxable = rent_out_effective - (
     mr.interest + maintenance + other_owner + prop_tax + capexAmount + rent_out_mgmt + rent_out_other
   );
@@ -564,12 +568,18 @@ export function simulate(p) {
 
   for (let t = 0; t < N; t++) {
     const retired = t >= retirement_year;
-    income_annual[t] = (retired ? p.retirement_income_annual : p.income_working_annual) * infl[t];
-    non_housing_expenses[t] = (retired ? p.non_housing_expenses_retired : p.non_housing_expenses_working) * infl[t];
-    rent_insurance[t] = p.rent_insurance_annual * infl[t];
+    const inc_w_f  = (p.income_working_inflate              !== false) ? infl[t] : Math.pow(1.0 + (p.income_working_growth_rate              || 0), t);
+    const inc_r_f  = (p.retirement_income_inflate           !== false) ? infl[t] : Math.pow(1.0 + (p.retirement_income_growth_rate           || 0), t);
+    const exp_w_f  = (p.non_housing_expenses_working_inflate !== false) ? infl[t] : Math.pow(1.0 + (p.non_housing_expenses_working_growth_rate || 0), t);
+    const exp_r_f  = (p.non_housing_expenses_retired_inflate !== false) ? infl[t] : Math.pow(1.0 + (p.non_housing_expenses_retired_growth_rate || 0), t);
+    const ins_f    = (p.rent_insurance_inflate              !== false) ? infl[t] : Math.pow(1.0 + (p.rent_insurance_growth_rate              || 0), t);
+    income_annual[t]        = retired ? p.retirement_income_annual * inc_r_f  : p.income_working_annual * inc_w_f;
+    non_housing_expenses[t] = retired ? p.non_housing_expenses_retired * exp_r_f : p.non_housing_expenses_working * exp_w_f;
+    rent_insurance[t]       = p.rent_insurance_annual * ins_f;
   }
   if (retirement_year <= T) {
-    retirement_oneoff[retirement_year] = p.retirement_oneoff_cost * infl[retirement_year];
+    const oneoff_f = (p.retirement_oneoff_inflate !== false) ? infl[retirement_year] : Math.pow(1.0 + (p.retirement_oneoff_growth_rate || 0), retirement_year);
+    retirement_oneoff[retirement_year] = p.retirement_oneoff_cost * oneoff_f;
   }
 
   // Home value & rent paths
@@ -647,7 +657,8 @@ export function simulate(p) {
 
   for (let t = 0; t < N; t++) {
     maintenance[t] = home_value[t] * p.maintenance_rate;
-    other_owner[t] = p.other_owner_costs * infl[t];
+    const other_owner_f = (p.other_owner_costs_inflate !== false) ? infl[t] : Math.pow(1.0 + (p.other_owner_costs_growth_rate || 0), t);
+    other_owner[t] = p.other_owner_costs * other_owner_f;
     prop_tax[t] = home_value[t] * p.property_tax_rate;
     const assessed = home_value[t] * p.property_tax_assessment_pct;
     property_wealth_tax[t]    = Math.max(0.0, assessed - mortgage_bal[t])    * p.wealth_tax_rate;
@@ -671,27 +682,29 @@ export function simulate(p) {
   const abolitionYear = p.imputed_rent_abolition_year ?? 9999;
 
   for (let t = 0; t < N; t++) {
+    const net_tax_f = (p.annual_net_tax_impact_inflate !== false) ? infl[t] : Math.pow(1.0 + (p.annual_net_tax_impact_growth_rate || 0), t);
+    const net_tax_base = p.annual_net_tax_impact * net_tax_f;
     if (t >= abolitionYear) {
       // Eigenmietwert abolished: no imputed income, no deductions
       imputed_rent[t] = 0;
       maintenance_deduction[t] = 0;
       interest_deduction[t] = 0;
       taxable_imputed[t] = 0;
-      tax_impact[t] = p.annual_net_tax_impact * infl[t];
+      tax_impact[t] = net_tax_base;
 
       interest_deduction_r1[t] = 0;
       taxable_imputed_r1[t] = 0;
-      tax_impact_r1[t] = p.annual_net_tax_impact * infl[t];
+      tax_impact_r1[t] = net_tax_base;
     } else {
       imputed_rent[t] = p.imputed_rent_pct * rent_annual_gross[t];
       maintenance_deduction[t] = Math.max(maintenance[t], imputed_rent[t] * p.maintenance_deduction_pct_of_imputed);
       interest_deduction[t] = interest_arr[t] * p.mortgage_interest_deductible_pct;
       taxable_imputed[t] = imputed_rent[t] - interest_deduction[t] - maintenance_deduction[t] - capex_arr[t];
-      tax_impact[t] = taxable_imputed[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+      tax_impact[t] = taxable_imputed[t] * p.marginal_tax_rate + net_tax_base;
 
       interest_deduction_r1[t] = interest_arr_r1[t] * p.mortgage_interest_deductible_pct;
       taxable_imputed_r1[t] = imputed_rent[t] - interest_deduction_r1[t] - maintenance_deduction[t] - capex_arr[t];
-      tax_impact_r1[t] = taxable_imputed_r1[t] * p.marginal_tax_rate + p.annual_net_tax_impact * infl[t];
+      tax_impact_r1[t] = taxable_imputed_r1[t] * p.marginal_tax_rate + net_tax_base;
     }
   }
 
@@ -740,7 +753,8 @@ export function simulate(p) {
     rent_out_gross[t] = p.rent_out_monthly_multiplier * rent_annual_gross[t];
     rent_out_effective[t] = rent_out_gross[t] * (1.0 - p.rent_out_vacancy_rate);
     rent_out_mgmt[t] = rent_out_effective[t] * p.rent_out_management_fee_rate;
-    rent_out_other[t] = p.rent_out_other_costs * infl[t];
+    const rent_out_other_f = (p.rent_out_other_costs_inflate !== false) ? infl[t] : Math.pow(1.0 + (p.rent_out_other_costs_growth_rate || 0), t);
+    rent_out_other[t] = p.rent_out_other_costs * rent_out_other_f;
     rent_out_taxable[t] = rent_out_effective[t] - (
       interest_arr[t] + maintenance[t] + other_owner[t] + prop_tax[t]
       + capex_arr[t] + rent_out_mgmt[t] + rent_out_other[t]

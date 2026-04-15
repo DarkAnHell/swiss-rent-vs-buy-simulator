@@ -355,6 +355,28 @@ export const DEFAULT_CONFIG = {
   cash_downpayment: 200_000,
   pillar2_used: 0,
   family_help: 0,
+
+  // Inflation-link toggles & custom growth rates
+  // When *_inflate is true (default), the param scales with inflation_rate.
+  // When false, the model uses *_growth_rate instead (annual % as decimal).
+  income_working_inflate: true,
+  income_working_growth_rate: 0.01,
+  retirement_income_inflate: true,
+  retirement_income_growth_rate: 0.01,
+  non_housing_expenses_working_inflate: true,
+  non_housing_expenses_working_growth_rate: 0.01,
+  non_housing_expenses_retired_inflate: true,
+  non_housing_expenses_retired_growth_rate: 0.01,
+  rent_insurance_inflate: true,
+  rent_insurance_growth_rate: 0.01,
+  retirement_oneoff_inflate: true,
+  retirement_oneoff_growth_rate: 0.01,
+  other_owner_costs_inflate: true,
+  other_owner_costs_growth_rate: 0.01,
+  annual_net_tax_impact_inflate: true,
+  annual_net_tax_impact_growth_rate: 0.0,
+  rent_out_other_costs_inflate: true,
+  rent_out_other_costs_growth_rate: 0.01,
 };
 
 // ---------------------------------------------------------------------------

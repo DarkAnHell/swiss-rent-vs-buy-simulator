@@ -22,6 +22,9 @@
       <option value="fr">FR</option>
       <option value="it">IT</option>
     </select>
+    <button class="btn-header-secondary" id="btn-export-preset" data-i18n="btn_export">Export</button>
+    <button class="btn-header-secondary" id="btn-import-preset" data-i18n="btn_import">Import</button>
+    <input type="file" id="import-preset-input" accept=".json" style="display:none">
     <div class="theme-toggle" id="theme-toggle">
       <button data-theme="light" class="active" data-i18n="theme_light">Light</button>
       <button data-theme="dark" data-i18n="theme_dark">Dark</button>
@@ -34,20 +37,7 @@
 <div class="app-layout">
 
   <!-- ===== Config Panel ===== -->
-  <aside class="config-panel" id="config-panel" data-config-mode="basic">
-
-    <!-- Basic / Advanced toggle -->
-    <div class="config-level-toggle" id="config-level-toggle">
-      <button class="active" data-level="basic" data-i18n="mode_basic">Basic</button>
-      <button data-level="advanced" data-i18n="mode_advanced">Advanced</button>
-    </div>
-
-    <!-- Export / Import preset -->
-    <div class="config-preset-actions">
-      <button id="btn-export-preset" data-i18n="btn_export">Export</button>
-      <button id="btn-import-preset" data-i18n="btn_import">Import</button>
-      <input type="file" id="import-preset-input" accept=".json" style="display:none">
-    </div>
+  <aside class="config-panel" id="config-panel">
 
     <!-- Canton Selector -->
     <div class="param-row" style="margin-bottom:14px">
@@ -87,14 +77,14 @@
       </div>
     </div>
 
-    <!-- 1. Horizon (open by default) -->
-    <details class="config-group" open>
-      <summary data-i18n="group_horizon">Horizon</summary>
-      <div class="config-group-body">
 
+    <!-- ===== GROUP 1: Your Profile ===== -->
+    <details class="config-group" open>
+      <summary data-i18n="group_profile">Your Profile</summary>
+      <div class="config-group-body">
         <div class="param-row" data-param="years">
           <div class="param-label-row">
-            <span class="param-label">Simulation Years</span>
+            <span class="param-label" data-i18n="param_years"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -111,10 +101,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
         <div class="param-row" data-param="current_age">
           <div class="param-label-row">
-            <span class="param-label">Current Age</span>
+            <span class="param-label" data-i18n="param_current_age"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -131,10 +120,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
         <div class="param-row" data-param="retirement_age">
           <div class="param-label-row">
-            <span class="param-label">Retirement Age</span>
+            <span class="param-label" data-i18n="param_retirement_age"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -151,106 +139,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-      </div>
-    </details>
-
-    <!-- 2. Starting Assets & Investing -->
-    <details class="config-group">
-      <summary data-i18n="group_assets">Starting Assets &amp; Investing</summary>
-      <div class="config-group-body">
-
-        <div class="param-row" data-param="liquid_assets">
-          <div class="param-label-row">
-            <span class="param-label">Liquid Assets</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="inflation_rate">
-          <div class="param-label-row">
-            <span class="param-label">Inflation Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="investment_tax_drag_rate">
-          <div class="param-label-row">
-            <span class="param-label">Investment Tax Drag Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="wealth_tax_rate">
-          <div class="param-label-row">
-            <span class="param-label">Wealth Tax Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-      </div>
-    </details>
-
-    <!-- 3. Household Cash Flow -->
-    <details class="config-group">
-      <summary data-i18n="group_cashflow">Household Cash Flow</summary>
-      <div class="config-group-body">
-
         <div class="param-row" data-param="income_working_annual">
           <div class="param-label-row">
-            <span class="param-label">Annual Working Income</span>
+            <span class="param-label" data-i18n="param_income_working_annual"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -266,11 +157,21 @@
             <span class="range-sep">n=</span>
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
+          <div class="inflate-row" data-inflate-param="income_working_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
         </div>
-
         <div class="param-row" data-param="retirement_income_annual">
           <div class="param-label-row">
-            <span class="param-label">Annual Retirement Income</span>
+            <span class="param-label" data-i18n="param_retirement_income_annual"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -286,11 +187,21 @@
             <span class="range-sep">n=</span>
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
+          <div class="inflate-row" data-inflate-param="retirement_income_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
         </div>
-
         <div class="param-row" data-param="non_housing_expenses_working">
           <div class="param-label-row">
-            <span class="param-label">Non-Housing Expenses (Working)</span>
+            <span class="param-label" data-i18n="param_non_housing_expenses_working"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -306,11 +217,21 @@
             <span class="range-sep">n=</span>
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
+          <div class="inflate-row" data-inflate-param="non_housing_expenses_working_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
         </div>
-
         <div class="param-row" data-param="non_housing_expenses_retired">
           <div class="param-label-row">
-            <span class="param-label">Non-Housing Expenses (Retired)</span>
+            <span class="param-label" data-i18n="param_non_housing_expenses_retired"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -326,718 +247,21 @@
             <span class="range-sep">n=</span>
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
-        </div>
-
-        <div class="param-row" data-param="retirement_oneoff_cost">
-          <div class="param-label-row">
-            <span class="param-label">Retirement One-Off Cost</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
+          <div class="inflate-row" data-inflate-param="non_housing_expenses_retired_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
             </div>
           </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
         </div>
-
-        <div class="param-row" data-param="stop_pillar2_contrib_at_retirement">
-          <div class="param-checkbox">
-            <input type="checkbox" id="stop_pillar2_contrib_at_retirement" checked>
-            <label for="stop_pillar2_contrib_at_retirement">Stop Pillar 2 Contributions at Retirement</label>
-          </div>
-        </div>
-
-      </div>
-    </details>
-
-    <!-- 4. Rent Costs -->
-    <details class="config-group">
-      <summary data-i18n="group_rent">Rent Costs</summary>
-      <div class="config-group-body">
-
-        <div class="param-row" data-param="rent_monthly">
-          <div class="param-label-row">
-            <span class="param-label">Monthly Rent</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="rent_insurance_annual">
-          <div class="param-label-row">
-            <span class="param-label">Annual Rent Insurance</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="rent_deposit_months">
-          <div class="param-label-row">
-            <span class="param-label">Rent Deposit (Months)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="rent_deposit_interest_rate">
-          <div class="param-label-row">
-            <span class="param-label">Rent Deposit Interest Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="moving_cost">
-          <div class="param-label-row">
-            <span class="param-label">Moving Cost</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-      </div>
-    </details>
-
-    <!-- 5. Macro Drivers -->
-    <details class="config-group">
-      <summary data-i18n="group_macro">Macro Drivers</summary>
-      <div class="config-group-body">
-
-        <div class="param-row" data-param="market_return">
-          <div class="param-label-row">
-            <span class="param-label">Market Return</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="home_price_growth">
-          <div class="param-label-row">
-            <span class="param-label">Home Price Growth</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="rent_growth">
-          <div class="param-label-row">
-            <span class="param-label">Rent Growth</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="stock_crash_pct">
-          <div class="param-label-row">
-            <span class="param-label">Stock Crash %</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="stock_crash_interval_years">
-          <div class="param-label-row">
-            <span class="param-label">Stock Crash Interval (Years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="housing_crash_pct">
-          <div class="param-label-row">
-            <span class="param-label">Housing Crash %</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="housing_crash_interval_years">
-          <div class="param-label-row">
-            <span class="param-label">Housing Crash Interval (Years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-      </div>
-    </details>
-
-    <!-- 6. Property & Owner Costs -->
-    <details class="config-group">
-      <summary data-i18n="group_property">Property &amp; Owner Costs</summary>
-      <div class="config-group-body">
-
-        <div class="param-row" data-param="purchase_price">
-          <div class="param-label-row">
-            <span class="param-label">Purchase Price</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="maintenance_rate">
-          <div class="param-label-row">
-            <span class="param-label">Maintenance Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="other_owner_costs">
-          <div class="param-label-row">
-            <span class="param-label">Other Owner Costs</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="property_tax_rate">
-          <div class="param-label-row">
-            <span class="param-label">Property Tax Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="property_tax_assessment_pct">
-          <div class="param-label-row">
-            <span class="param-label">Property Tax Assessment %</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="annual_net_tax_impact">
-          <div class="param-label-row">
-            <span class="param-label">Annual Net Tax Impact</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="maintenance_deduction_pct_of_imputed">
-          <div class="param-label-row">
-            <span class="param-label">Maintenance Deduction % of Imputed</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_interest_deductible_pct">
-          <div class="param-label-row">
-            <span class="param-label">Mortgage Interest Deductible %</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-      </div>
-    </details>
-
-    <!-- 7. Mortgage -->
-    <details class="config-group">
-      <summary data-i18n="group_mortgage">Mortgage</summary>
-      <div class="config-group-body">
-
-        <div class="param-row" data-param="mortgage_fixed_years">
-          <div class="param-label-row">
-            <span class="param-label">Fixed Mortgage Term (Years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_fixed_rate">
-          <div class="param-label-row">
-            <span class="param-label">Fixed Mortgage Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_fixed_share">
-          <div class="param-label-row">
-            <span class="param-label">Fixed Mortgage Share</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_variable_rate_initial">
-          <div class="param-label-row">
-            <span class="param-label">Variable Rate (Initial)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_variable_rate_long">
-          <div class="param-label-row">
-            <span class="param-label">Variable Rate (Long-Term)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_variable_adjust_years">
-          <div class="param-label-row">
-            <span class="param-label">Variable Rate Adjust (Years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_refix_rate">
-          <div class="param-label-row">
-            <span class="param-label">Refix Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="mortgage_refix_years">
-          <div class="param-label-row">
-            <span class="param-label">Refix Term (Years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="amort_years">
-          <div class="param-label-row">
-            <span class="param-label">Amortization Years</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="target_ltv">
-          <div class="param-label-row">
-            <span class="param-label">Target LTV</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="upfront_mortgage_fees">
-          <div class="param-label-row">
-            <span class="param-label">Upfront Mortgage Fees</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-      </div>
-    </details>
-
-    <!-- 8. Taxes -->
-    <details class="config-group">
-      <summary data-i18n="group_taxes">Taxes</summary>
-      <div class="config-group-body">
-
-        <div class="param-row" data-param="imputed_rent_pct">
-          <div class="param-label-row">
-            <span class="param-label">Imputed Rent %</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
         <div class="param-row" data-param="marginal_tax_rate">
           <div class="param-label-row">
-            <span class="param-label">Marginal Tax Rate</span>
+            <span class="param-label" data-i18n="param_marginal_tax_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1054,10 +278,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="cap_gains_tax_rate_base">
+        <div class="param-row" data-param="retirement_oneoff_cost" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Capital Gains Tax Rate (Base)</span>
+            <span class="param-label" data-i18n="param_retirement_oneoff_cost"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1073,59 +296,63 @@
             <span class="range-sep">n=</span>
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
-        </div>
-
-        <div class="param-row" data-param="cap_gains_tax">
-          <div class="param-label-row">
-            <span class="param-label">Capital Gains Tax</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
+          <div class="inflate-row" data-inflate-param="retirement_oneoff_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
             </div>
           </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
         </div>
-
-        <div class="param-row" data-param="imputed_rent_abolition_year">
-          <div class="param-label-row">
-            <span class="param-label">Eigenmietwert Abolition (years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
+        <div class="param-row" data-param="stop_pillar2_contrib_at_retirement" data-advanced>
+          <div class="param-input-group">
+            <div class="param-checkbox">
+              <input type="checkbox" data-field="value" id="stop_pillar2_contrib_at_retirement" checked>
+              <label for="stop_pillar2_contrib_at_retirement" data-i18n="param_stop_pillar2_contrib_at_retirement"></label>
             </div>
           </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="1" min="0" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="1" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="1" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+        </div>
+        <div class="param-row" data-param="stop_pillar3a_contrib_at_retirement" data-advanced>
+          <div class="param-input-group">
+            <div class="param-checkbox">
+              <input type="checkbox" data-field="value" id="stop_pillar3a_contrib_at_retirement" checked>
+              <label for="stop_pillar3a_contrib_at_retirement" data-i18n="param_stop_pillar3a_contrib_at_retirement"></label>
+            </div>
           </div>
         </div>
-
       </div>
     </details>
 
-    <!-- 9. 2nd Pillar -->
-    <details class="config-group">
-      <summary data-i18n="group_pillar2">2nd Pillar</summary>
+    <!-- ===== GROUP 2: Your Savings & Pensions ===== -->
+    <details class="config-group" open>
+      <summary data-i18n="group_savings">Your Savings &amp; Pensions</summary>
       <div class="config-group-body">
-
+        <div class="param-row" data-param="liquid_assets">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_liquid_assets"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
         <div class="param-row" data-param="pillar2_start">
           <div class="param-label-row">
-            <span class="param-label">Pillar 2 Starting Balance</span>
+            <span class="param-label" data-i18n="param_pillar2_start"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1142,10 +369,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
         <div class="param-row" data-param="pillar2_contrib">
           <div class="param-label-row">
-            <span class="param-label">Pillar 2 Annual Contribution</span>
+            <span class="param-label" data-i18n="param_pillar2_contrib"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1162,10 +388,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar2_rate">
+        <div class="param-row" data-param="pillar2_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Pillar 2 Interest Rate</span>
+            <span class="param-label" data-i18n="param_pillar2_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1182,10 +407,17 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar2_withdrawal_tax_rate">
+        <div class="param-row" data-param="pillar2_annuitize_at_retirement" data-advanced>
+          <div class="param-input-group">
+            <div class="param-checkbox">
+              <input type="checkbox" data-field="value" id="pillar2_annuitize_at_retirement" checked>
+              <label for="pillar2_annuitize_at_retirement" data-i18n="param_pillar2_annuitize_at_retirement"></label>
+            </div>
+          </div>
+        </div>
+        <div class="param-row" data-param="pillar2_conversion_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Pillar 2 Withdrawal Tax Rate</span>
+            <span class="param-label" data-i18n="param_pillar2_conversion_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1202,17 +434,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar2_annuitize_at_retirement">
-          <div class="param-checkbox">
-            <input type="checkbox" id="pillar2_annuitize_at_retirement" checked>
-            <label for="pillar2_annuitize_at_retirement">Annuitize at Retirement</label>
-          </div>
-        </div>
-
-        <div class="param-row" data-param="pillar2_conversion_rate">
+        <div class="param-row" data-param="pillar2_withdrawal_tax_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Pillar 2 Conversion Rate</span>
+            <span class="param-label" data-i18n="param_pillar2_withdrawal_tax_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1229,18 +453,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-      </div>
-    </details>
-
-    <!-- 10. 3rd Pillar (3a) -->
-    <details class="config-group">
-      <summary data-i18n="group_pillar3a">3rd Pillar (3a)</summary>
-      <div class="config-group-body">
-
         <div class="param-row" data-param="pillar3a_start">
           <div class="param-label-row">
-            <span class="param-label">Pillar 3a Starting Balance</span>
+            <span class="param-label" data-i18n="param_pillar3a_start"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1257,10 +472,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
         <div class="param-row" data-param="pillar3a_contrib">
           <div class="param-label-row">
-            <span class="param-label">Pillar 3a Annual Contribution</span>
+            <span class="param-label" data-i18n="param_pillar3a_contrib"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1277,10 +491,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar3a_rate">
+        <div class="param-row" data-param="pillar3a_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Pillar 3a Interest Rate</span>
+            <span class="param-label" data-i18n="param_pillar3a_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1297,10 +510,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar3a_used">
+        <div class="param-row" data-param="pillar3a_tax_deduction_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Pillar 3a Used for Down Payment</span>
+            <span class="param-label" data-i18n="param_pillar3a_tax_deduction_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1317,10 +529,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar3a_withdrawal_tax_rate">
+        <div class="param-row" data-param="pillar3a_withdrawal_tax_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Pillar 3a Withdrawal Tax Rate</span>
+            <span class="param-label" data-i18n="param_pillar3a_withdrawal_tax_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1337,45 +548,16 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="pillar3a_tax_deduction_rate">
-          <div class="param-label-row">
-            <span class="param-label">Pillar 3a Tax Deduction Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="stop_pillar3a_contrib_at_retirement">
-          <div class="param-checkbox">
-            <input type="checkbox" id="stop_pillar3a_contrib_at_retirement" checked>
-            <label for="stop_pillar3a_contrib_at_retirement">Stop Pillar 3a Contributions at Retirement</label>
-          </div>
-        </div>
-
       </div>
     </details>
 
-    <!-- 11. Transaction Costs -->
-    <details class="config-group">
-      <summary data-i18n="group_transaction">Transaction Costs</summary>
+    <!-- ===== GROUP 3: Renting ===== -->
+    <details class="config-group" open>
+      <summary data-i18n="group_renting">Renting</summary>
       <div class="config-group-body">
-
-        <div class="param-row" data-param="buying_cost_pct">
+        <div class="param-row" data-param="rent_monthly">
           <div class="param-label-row">
-            <span class="param-label">Buying Cost %</span>
+            <span class="param-label" data-i18n="param_rent_monthly"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1392,10 +574,39 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="buying_cost_fixed">
+        <div class="param-row" data-param="rent_insurance_annual" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Buying Cost (Fixed)</span>
+            <span class="param-label" data-i18n="param_rent_insurance_annual"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+          <div class="inflate-row" data-inflate-param="rent_insurance_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
+        </div>
+        <div class="param-row" data-param="rent_deposit_months" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_rent_deposit_months"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1412,10 +623,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="property_transfer_tax_rate">
+        <div class="param-row" data-param="rent_deposit_interest_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Property Transfer Tax Rate</span>
+            <span class="param-label" data-i18n="param_rent_deposit_interest_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1432,10 +642,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="selling_cost_pct">
+        <div class="param-row" data-param="moving_cost" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Selling Cost %</span>
+            <span class="param-label" data-i18n="param_moving_cost"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1452,98 +661,36 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="selling_cost_fixed">
-          <div class="param-label-row">
-            <span class="param-label">Selling Cost (Fixed)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="capex_rate">
-          <div class="param-label-row">
-            <span class="param-label">CapEx Rate</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="capex_interval_years">
-          <div class="param-label-row">
-            <span class="param-label">CapEx Interval (Years)</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
-        <div class="param-row" data-param="capex_first_year">
-          <div class="param-label-row">
-            <span class="param-label">CapEx First Year</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
       </div>
     </details>
 
-    <!-- 11. Equity -->
-    <details class="config-group">
-      <summary data-i18n="group_equity">Equity</summary>
+    <!-- ===== GROUP 4: Buying a Home ===== -->
+    <details class="config-group" open>
+      <summary data-i18n="group_buying">Buying a Home</summary>
       <div class="config-group-body">
-
+        <div class="config-subgroup-label" data-i18n="lbl_down_payment">Down Payment</div>
+        <div class="param-row" data-param="purchase_price">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_purchase_price"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
         <div class="param-row" data-param="cash_downpayment">
           <div class="param-label-row">
-            <span class="param-label">Cash Down Payment <small style="font-weight:400;color:var(--color-text-muted)">(excl. Pillar 2/3a)</small></span>
+            <span class="param-label" data-i18n="param_cash_downpayment"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1560,10 +707,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
         <div class="param-row" data-param="pillar2_used">
           <div class="param-label-row">
-            <span class="param-label">Pillar 2 Used</span>
+            <span class="param-label" data-i18n="param_pillar2_used"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1580,10 +726,28 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
+        <div class="param-row" data-param="pillar3a_used">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_pillar3a_used"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
         <div class="param-row" data-param="family_help">
           <div class="param-label-row">
-            <span class="param-label">Family Help</span>
+            <span class="param-label" data-i18n="param_family_help"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1600,18 +764,814 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
+        <div class="config-subgroup-label" data-i18n="lbl_ownership_costs">Ownership Costs</div>
+        <div class="param-row" data-param="maintenance_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_maintenance_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="other_owner_costs" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_other_owner_costs"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+          <div class="inflate-row" data-inflate-param="other_owner_costs_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
+        </div>
+        <div class="param-row" data-param="annual_net_tax_impact" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_annual_net_tax_impact"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+          <div class="inflate-row" data-inflate-param="annual_net_tax_impact_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
+        </div>
+        <div class="param-row" data-param="property_tax_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_property_tax_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="property_tax_assessment_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_property_tax_assessment_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="maintenance_deduction_pct_of_imputed" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_maintenance_deduction_pct_of_imputed"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_interest_deductible_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_interest_deductible_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="config-subgroup-label" data-i18n="lbl_mortgage_details">Mortgage Details</div>
+        <div class="param-row" data-param="mortgage_fixed_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_fixed_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_fixed_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_fixed_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_fixed_share" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_fixed_share"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_variable_rate_initial" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_variable_rate_initial"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_variable_rate_long" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_variable_rate_long"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_variable_adjust_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_variable_adjust_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_refix_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_refix_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="mortgage_refix_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_mortgage_refix_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="amort_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_amort_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="target_ltv" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_target_ltv"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="upfront_mortgage_fees" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_upfront_mortgage_fees"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
       </div>
     </details>
 
-    <!-- 12. Landlord Mode -->
+    <!-- ===== GROUP 5: Economic Forecasts ===== -->
+    <details class="config-group" open>
+      <summary data-i18n="group_forecasts">Economic Forecasts</summary>
+      <div class="config-group-body">
+        <div class="param-row" data-param="market_return">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_market_return"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="home_price_growth">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_home_price_growth"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="rent_growth">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_rent_growth"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="inflation_rate">
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_inflation_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="investment_tax_drag_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_investment_tax_drag_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="wealth_tax_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_wealth_tax_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="stock_crash_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_stock_crash_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="stock_crash_interval_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_stock_crash_interval_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="housing_crash_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_housing_crash_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="housing_crash_interval_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_housing_crash_interval_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== GROUP 6: Taxes & Transaction Costs ===== -->
+    <details class="config-group">
+      <summary data-i18n="group_taxes_costs">Taxes &amp; Transaction Costs</summary>
+      <div class="config-group-body">
+        <div class="param-row" data-param="imputed_rent_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_imputed_rent_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="imputed_rent_abolition_year" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_imputed_rent_abolition_year"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="cap_gains_tax_rate_base" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_cap_gains_tax_rate_base"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="cap_gains_tax" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_cap_gains_tax"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="buying_cost_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_buying_cost_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="buying_cost_fixed" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_buying_cost_fixed"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="property_transfer_tax_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_property_transfer_tax_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="selling_cost_pct" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_selling_cost_pct"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="selling_cost_fixed" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_selling_cost_fixed"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="capex_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_capex_rate"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="capex_interval_years" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_capex_interval_years"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+        <div class="param-row" data-param="capex_first_year" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_capex_first_year"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- ===== GROUP 7: Landlord Mode ===== -->
     <details class="config-group">
       <summary data-i18n="group_landlord">Landlord Mode</summary>
       <div class="config-group-body">
-
-        <div class="param-row" data-param="rent_out_monthly_multiplier">
+        <div class="param-row" data-param="rent_out_monthly_multiplier" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Rent-Out Monthly Multiplier</span>
+            <span class="param-label" data-i18n="param_rent_out_monthly_multiplier"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1628,10 +1588,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="rent_out_vacancy_rate">
+        <div class="param-row" data-param="rent_out_vacancy_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Vacancy Rate</span>
+            <span class="param-label" data-i18n="param_rent_out_vacancy_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1648,10 +1607,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="rent_out_management_fee_rate">
+        <div class="param-row" data-param="rent_out_management_fee_rate" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Management Fee Rate</span>
+            <span class="param-label" data-i18n="param_rent_out_management_fee_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1668,10 +1626,39 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="rent_out_other_costs">
+        <div class="param-row" data-param="rent_out_other_costs" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Rent-Out Other Costs</span>
+            <span class="param-label" data-i18n="param_rent_out_other_costs"></span>
+            <div class="mode-toggle">
+              <button class="active" data-mode="fixed">Fixed</button>
+              <button data-mode="range">Range</button>
+            </div>
+          </div>
+          <div class="param-input-group fixed-input">
+            <input type="number" step="any" data-field="value">
+          </div>
+          <div class="range-inputs">
+            <input type="number" step="any" data-field="min" placeholder="Min">
+            <span class="range-sep">to</span>
+            <input type="number" step="any" data-field="max" placeholder="Max">
+            <span class="range-sep">n=</span>
+            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
+          </div>
+          <div class="inflate-row" data-inflate-param="rent_out_other_costs_inflate">
+            <label class="inflate-label">
+              <input type="checkbox" data-field="inflate" checked>
+              <span data-i18n="lbl_scales_with_inflation">Grows with inflation</span>
+            </label>
+            <div class="custom-rate-wrap hidden">
+              <span data-i18n="lbl_custom_growth">Custom growth</span>
+              <input type="number" step="0.1" data-field="growth_rate" placeholder="1.0">
+              <span>%/yr</span>
+            </div>
+          </div>
+        </div>
+        <div class="param-row" data-param="rent_out_income_tax_rate" data-advanced>
+          <div class="param-label-row">
+            <span class="param-label" data-i18n="param_rent_out_income_tax_rate"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1688,10 +1675,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="rent_out_income_tax_rate">
+        <div class="param-row" data-param="second_home_rent_monthly" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Rent-Out Income Tax Rate</span>
+            <span class="param-label" data-i18n="param_second_home_rent_monthly"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1708,10 +1694,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="second_home_rent_monthly">
+        <div class="param-row" data-param="second_home_rent_multiplier" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Second Home Monthly Rent</span>
+            <span class="param-label" data-i18n="param_second_home_rent_multiplier"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1728,10 +1713,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="second_home_rent_multiplier">
+        <div class="param-row" data-param="second_home_rent_deposit_months" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Second Home Rent Multiplier</span>
+            <span class="param-label" data-i18n="param_second_home_rent_deposit_months"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1748,10 +1732,9 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="second_home_rent_deposit_months">
+        <div class="param-row" data-param="rent_out_trigger_liquidity_threshold" data-advanced>
           <div class="param-label-row">
-            <span class="param-label">Second Home Rent Deposit (Months)</span>
+            <span class="param-label" data-i18n="param_rent_out_trigger_liquidity_threshold"></span>
             <div class="mode-toggle">
               <button class="active" data-mode="fixed">Fixed</button>
               <button data-mode="range">Range</button>
@@ -1768,31 +1751,11 @@
             <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
           </div>
         </div>
-
-        <div class="param-row" data-param="rent_out_trigger_liquidity_threshold">
-          <div class="param-label-row">
-            <span class="param-label">Rent-Out Trigger Liquidity Threshold</span>
-            <div class="mode-toggle">
-              <button class="active" data-mode="fixed">Fixed</button>
-              <button data-mode="range">Range</button>
-            </div>
-          </div>
-          <div class="param-input-group fixed-input">
-            <input type="number" step="any" data-field="value">
-          </div>
-          <div class="range-inputs">
-            <input type="number" step="any" data-field="min" placeholder="Min">
-            <span class="range-sep">to</span>
-            <input type="number" step="any" data-field="max" placeholder="Max">
-            <span class="range-sep">n=</span>
-            <input type="number" step="1" min="1" data-field="n" placeholder="N" style="max-width:50px">
-          </div>
-        </div>
-
       </div>
     </details>
 
   </aside>
+
 
   <!-- ===== Results Panel ===== -->
   <main class="results-panel">
