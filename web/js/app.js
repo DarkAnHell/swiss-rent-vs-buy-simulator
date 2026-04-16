@@ -680,7 +680,15 @@ async function runSimulation() {
       config,
       currentCanton,
       (completed, totalN) => {
-        progressFill.classList.remove("preparing");
+        // First simulation tick: drop the prep bar immediately to 0 so it
+        // never appears to go backwards before climbing from the real value.
+        if (progressFill.classList.contains("preparing")) {
+          progressFill.classList.remove("preparing");
+          progressFill.style.transition = "none";
+          progressFill.style.width = "0%";
+          // Re-enable transition on the next frame
+          requestAnimationFrame(() => { progressFill.style.transition = ""; });
+        }
         const pct = ((completed / totalN) * 100).toFixed(1);
         progressFill.style.width = pct + "%";
         progressLabel.textContent = `${completed.toLocaleString()} / ${totalN.toLocaleString()} (${pct}%)`;
@@ -727,6 +735,7 @@ async function runSimulation() {
     progressLabel.textContent = `${err.message}`;
     progressLabel.classList.add("error");
     progressFill.style.width = "100%";
+    progressFill.classList.remove("preparing");
     progressFill.classList.add("error");
     console.error(err);
   } finally {
