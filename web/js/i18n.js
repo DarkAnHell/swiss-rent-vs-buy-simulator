@@ -75,14 +75,28 @@ const TRANSLATIONS = {
     stat_min: "min",
     stat_max: "max",
 
-    // Config groups (new 7-group structure)
-    group_profile: "Your Profile",
+    // Config groups
+    group_profile: "Personal Profile",
+    group_cashflow: "Household Cash Flow",
+    group_renting: "The Rent Scenario",
+    group_property: "The Property",
+    group_downpayment: "Down Payment",
+    group_mortgage: "Mortgage",
+    group_pillar2: "Pillar 2 (BVG)",
+    group_pillar3a: "Pillar 3a",
+    group_market: "Market Assumptions",
+    group_taxes: "Taxes",
+    group_transaction_costs: "Transaction Costs",
+    group_stress: "Stress Tests",
+    group_landlord: "Landlord Mode",
+    // Legacy keys (keep for compat)
     group_savings: "Your Savings & Pensions",
-    group_renting: "Renting",
     group_buying: "Buying a Home",
     group_forecasts: "Economic Forecasts",
     group_taxes_costs: "Taxes & Transaction Costs",
-    group_landlord: "Landlord Mode",
+
+    // Advanced toggle
+    show_advanced: "Show advanced",
 
     // Config subgroup labels
     lbl_down_payment: "Down Payment",

@@ -881,6 +881,7 @@ function wireLegendToggles() {
       const next = !vis[key];
       btn.classList.toggle("is-off", !next);
       setStrategyEnabled(key, next);
+      updateLandlordSectionVisibility();
     });
   });
 
@@ -894,6 +895,117 @@ function wireLegendToggles() {
       setBandsEnabled(next);
     });
   }
+}
+
+// ---- Advanced toggle ----
+
+function initAdvancedToggle() {
+  const toggle = document.getElementById("show-advanced-toggle");
+  if (!toggle) return;
+  const saved = localStorage.getItem("show_advanced") === "true";
+  toggle.checked = saved;
+  applyAdvancedVisibility(saved);
+  toggle.addEventListener("change", () => {
+    localStorage.setItem("show_advanced", toggle.checked);
+    applyAdvancedVisibility(toggle.checked);
+  });
+}
+
+function applyAdvancedVisibility(show) {
+  document.querySelectorAll(".param-row[data-advanced]").forEach((row) => {
+    row.style.display = show ? "" : "none";
+  });
+  document.querySelectorAll("details[data-advanced-group]").forEach((group) => {
+    group.style.display = show ? "" : "none";
+  });
+}
+
+// ---- Mortgage conditional visibility ----
+
+function updateMortgageConditionalVisibility() {
+  const fixedShareInput = document.querySelector('.param-row[data-param="mortgage_fixed_share"] .fixed-input input[data-field="value"]');
+  const fixedYearsInput = document.querySelector('.param-row[data-param="mortgage_fixed_years"] .fixed-input input[data-field="value"]');
+  const yearsInput      = document.querySelector('.param-row[data-param="years"] .fixed-input input[data-field="value"]');
+
+  const fixedShare = fixedShareInput ? parseFloat(fixedShareInput.value) : NaN;
+  const variableGreyed = isFinite(fixedShare) && fixedShare >= 100;
+  document.querySelectorAll(".mortgage-variable-param").forEach((row) => {
+    row.classList.toggle("param-greyed", variableGreyed);
+  });
+
+  const fixedYears = fixedYearsInput ? parseFloat(fixedYearsInput.value) : NaN;
+  const simYears   = yearsInput      ? parseFloat(yearsInput.value)       : NaN;
+  const refixGreyed = isFinite(fixedYears) && isFinite(simYears) && fixedYears >= simYears;
+  document.querySelectorAll(".mortgage-refix-param").forEach((row) => {
+    row.classList.toggle("param-greyed", refixGreyed);
+  });
+}
+
+// ---- Pillar 2 conversion rate conditional visibility ----
+
+function updatePillar2ConversionVisibility() {
+  const annuitizeCheck = document.querySelector('.param-row[data-param="pillar2_annuitize_at_retirement"] input[type="checkbox"]');
+  const conversionRow  = document.getElementById("row-pillar2-conversion");
+  if (!conversionRow) return;
+  conversionRow.style.display = (annuitizeCheck?.checked ?? true) ? "" : "none";
+}
+
+// ---- Down payment readout ----
+
+function updateDownPaymentReadout() {
+  const readout = document.getElementById("down-payment-readout");
+  if (!readout) return;
+
+  function getVal(param) {
+    const input = document.querySelector(`.param-row[data-param="${param}"] .fixed-input input[data-field="value"]`);
+    return input ? (parseFloat(input.value) || 0) : 0;
+  }
+
+  const price  = getVal("purchase_price");
+  const cash   = getVal("cash_downpayment");
+  const p2     = getVal("pillar2_used");
+  const p3a    = getVal("pillar3a_used");
+  const family = getVal("family_help");
+
+  if (price <= 0) { readout.innerHTML = ""; return; }
+
+  const totalEquity = cash + p2 + p3a + family;
+  const mortgage    = Math.max(0, price - totalEquity);
+  const ltv         = (mortgage / price) * 100;
+  const ownFunds    = cash + family; // Swiss 10% rule: P2 excluded from own-funds requirement
+  const minEquity   = price * 0.2;
+  const minOwnFunds = price * 0.1;
+
+  const fmt    = (n) => "CHF\u00a0" + Math.round(n).toLocaleString("de-CH");
+  const fmtPct = (n) => n.toFixed(1) + "%";
+
+  let html = `
+    <div class="dp-row"><span>Total equity</span><span class="dp-val">${fmt(totalEquity)}</span></div>
+    <div class="dp-row"><span>Mortgage</span><span class="dp-val">${fmt(mortgage)}</span></div>
+    <div class="dp-row"><span>LTV</span><span class="${ltv > 80 ? "dp-warn" : "dp-val"}">${fmtPct(ltv)}</span></div>
+  `;
+
+  if (totalEquity < minEquity) {
+    const shortfall = minEquity - totalEquity;
+    html += `<div class="dp-warning">Shortfall: ${fmt(shortfall)} — minimum 20% equity required</div>`;
+  }
+  if (ownFunds < minOwnFunds) {
+    const shortfall = minOwnFunds - ownFunds;
+    html += `<div class="dp-warning amber">Swiss 10% rule: cash + family must cover at least ${fmt(minOwnFunds)}. Shortfall: ${fmt(shortfall)}</div>`;
+  }
+
+  readout.innerHTML = html;
+}
+
+// ---- Landlord section visibility ----
+
+function updateLandlordSectionVisibility() {
+  const group = document.getElementById("group-landlord");
+  if (!group) return;
+  const trig = document.querySelector('.legend-item[data-strategy="buy_let_trig"]');
+  const imm  = document.querySelector('.legend-item[data-strategy="buy_let_imm"]');
+  const show = (trig && !trig.classList.contains("is-off")) || (imm && !imm.classList.contains("is-off"));
+  group.style.display = show ? "" : "none";
 }
 
 // ---- Inflate toggles ----
@@ -965,6 +1077,7 @@ function init() {
   initUnitBadges();
   initTheme();
   initLang();
+  initAdvancedToggle();
 
   if (cantonSelect) {
     cantonSelect.value = currentCanton;
@@ -979,6 +1092,32 @@ function init() {
   wireDownloadButtons();
   wireLegendToggles();
   wireHistogramSlider();
+
+  // Wire mortgage conditional visibility
+  const mortgageInputs = [
+    '.param-row[data-param="mortgage_fixed_share"] .fixed-input input',
+    '.param-row[data-param="mortgage_fixed_years"] .fixed-input input',
+    '.param-row[data-param="years"] .fixed-input input',
+  ];
+  mortgageInputs.forEach((sel) => {
+    document.querySelector(sel)?.addEventListener("input", updateMortgageConditionalVisibility);
+  });
+  updateMortgageConditionalVisibility();
+
+  // Wire Pillar 2 conversion rate visibility
+  document.querySelector('.param-row[data-param="pillar2_annuitize_at_retirement"] input[type="checkbox"]')
+    ?.addEventListener("change", updatePillar2ConversionVisibility);
+  updatePillar2ConversionVisibility();
+
+  // Wire down payment readout
+  ["purchase_price", "cash_downpayment", "pillar2_used", "pillar3a_used", "family_help"].forEach((param) => {
+    document.querySelector(`.param-row[data-param="${param}"] .fixed-input input`)
+      ?.addEventListener("input", updateDownPaymentReadout);
+  });
+  updateDownPaymentReadout();
+
+  // Initial landlord section visibility
+  updateLandlordSectionVisibility();
 
   btnExportPreset?.addEventListener("click", exportPreset);
   btnImportPreset?.addEventListener("click", () => importPresetInput?.click());

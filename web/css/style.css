@@ -789,7 +789,7 @@
 }
 
 .param-row[data-canton-locked="true"] .param-label::after {
-  content: "canton";
+  content: "from canton";
   font-size: 10px;
   padding: 1px 5px;
   border-radius: 3px;
@@ -1141,4 +1141,172 @@
   width: 15px;
   height: 15px;
   flex-shrink: 0;
+}
+
+/* ===== Panel Header Controls (sticky top of sidebar) ===== */
+.panel-header-controls {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-surface);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  margin: -16px -16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+[data-theme="dark"] .panel-header-controls {
+  background: var(--color-surface);
+}
+
+.canton-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-ctrl-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.canton-control-row select {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.show-advanced-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.show-advanced-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* ===== Group description subtitle ===== */
+.group-desc {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  font-weight: 400;
+  line-height: 1.4;
+  display: block;
+}
+
+/* ===== Down Payment Readout ===== */
+.dp-readout {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .dp-readout {
+  background: rgba(56, 189, 248, 0.06);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.dp-readout:empty {
+  display: none;
+}
+
+.dp-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dp-val {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.dp-warn {
+  color: #d97706;
+  font-weight: 600;
+}
+
+.dp-shortfall {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.dp-warning {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: rgba(220, 38, 38, 0.08);
+  border-left: 3px solid #dc2626;
+  border-radius: 2px;
+  font-size: 11px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.dp-warning.amber {
+  background: rgba(217, 119, 6, 0.08);
+  border-left-color: #d97706;
+  color: #d97706;
+}
+
+/* ===== Stress Tests Warning Banner ===== */
+.stress-warning-banner {
+  font-size: 11px;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  padding: 6px 10px;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .stress-warning-banner {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+}
+
+/* ===== Greyed-out (conditionally inactive) params ===== */
+.param-greyed {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+/* ===== Canton "customized" badge (overridden canton value) ===== */
+.param-row[data-canton-overridden="true"] .param-label::after {
+  content: "customized";
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+  margin-left: 6px;
+  font-weight: 400;
+  vertical-align: middle;
 }
