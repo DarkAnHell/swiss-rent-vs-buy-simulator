@@ -247,12 +247,12 @@ export const CANTON_PROFILES = {
 export const DEFAULT_CONFIG = {
   // horizon
   years: 60,
-  current_age: 20,
+  current_age: 35,
   retirement_age: 65,
 
   // starting assets & investing
   liquid_assets: 0.0,
-  inflation_rate: lin(0.01, 0.05, 5),
+  inflation_rate: lin(0.01, 0.03, 3),
   investment_tax_drag_rate: lin(0.0, 0.005, 2),
   wealth_tax_rate: lin(0.0, 0.003, 2),
 
@@ -260,7 +260,7 @@ export const DEFAULT_CONFIG = {
   income_working_annual: 180_000.0,
   retirement_income_annual: 2520 * 12,
   non_housing_expenses_working: 50_000.0,
-  non_housing_expenses_retired: 50_000.0,
+  non_housing_expenses_retired: 40_000.0,
   retirement_oneoff_cost: 10000.0,
   stop_pillar2_contrib_at_retirement: true,
 
@@ -272,8 +272,8 @@ export const DEFAULT_CONFIG = {
 
   // macro drivers
   market_return: lin(0.02, 0.10, 3),
-  home_price_growth: lin(0.01, 0.10, 3),
-  rent_growth: lin(0.01, 0.10, 3),
+  home_price_growth: lin(0.02, 0.04, 3),
+  rent_growth: lin(0.01, 0.03, 3),
 
   // crash stress tests
   stock_crash_pct: lin(0.20, 0.55, 3),
@@ -284,7 +284,7 @@ export const DEFAULT_CONFIG = {
   // landlord mode
   rent_out_monthly_multiplier: 1.00,
   rent_out_vacancy_rate: 0.05,
-  rent_out_management_fee_rate: 0.01,
+  rent_out_management_fee_rate: 0.08,
   rent_out_other_costs: 1000.0,
   rent_out_income_tax_rate: 0.25,
   second_home_rent_monthly: 2000.0,
@@ -309,7 +309,7 @@ export const DEFAULT_CONFIG = {
   mortgage_fixed_share: choices(0.60, 0.80),
   mortgage_variable_rate_initial: lin(0.005, 0.02, 2),
   mortgage_variable_rate_long: choices(0.020, 0.030),
-  mortgage_variable_adjust_years: 10,
+  mortgage_variable_adjust_years: choices(1, 3),
   mortgage_refix_rate: 0.02,
   mortgage_refix_years: 10,
   amort_years: 15,
