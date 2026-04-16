@@ -667,9 +667,12 @@ async function runSimulation() {
   btnRun.disabled = true;
   btnRun.textContent = t("btn_running");
   progressFill.style.width = "0%";
-  progressFill.classList.remove("error");
+  progressFill.classList.remove("error", "preparing");
   progressLabel.classList.remove("error");
   progressLabel.textContent = t("status_starting");
+
+  // Yield so the browser paints the "Starting..." state before heavy work begins
+  await new Promise(r => setTimeout(r, 0));
 
   try {
     const config = readConfigFromUI();
@@ -677,9 +680,36 @@ async function runSimulation() {
       config,
       currentCanton,
       (completed, totalN) => {
+        progressFill.classList.remove("preparing");
         const pct = ((completed / totalN) * 100).toFixed(1);
         progressFill.style.width = pct + "%";
         progressLabel.textContent = `${completed.toLocaleString()} / ${totalN.toLocaleString()} (${pct}%)`;
+      },
+      undefined,
+      (phase, done, tot) => {
+        progressFill.classList.add("preparing");
+        switch (phase) {
+          case "config":
+            progressFill.style.width = "5%";
+            progressLabel.textContent = t("prep_config");
+            break;
+          case "grid":
+            progressFill.style.width = "15%";
+            progressLabel.textContent = t("prep_grid");
+            break;
+          case "combos": {
+            const pct = tot > 0 ? (done / tot) * 100 : 0;
+            progressFill.style.width = pct.toFixed(1) + "%";
+            progressLabel.textContent = tot > 1
+              ? `${t("prep_combos")}: ${done.toLocaleString()} / ${tot.toLocaleString()} (${pct.toFixed(1)}%)`
+              : t("prep_combos");
+            break;
+          }
+          case "workers":
+            progressFill.style.width = "100%";
+            progressLabel.textContent = t("prep_workers");
+            break;
+        }
       },
     );
 

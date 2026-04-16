@@ -21,21 +21,32 @@ export function totalCombinations(sweepConfig) {
   return valueLists.reduce((acc, v) => acc * v.length, 1);
 }
 
-function cartesianProduct(arrays) {
+async function cartesianProduct(arrays, onProgress) {
   if (arrays.length === 0) return [[]];
-  const result = [];
-  const stack = [{ depth: 0, combo: [] }];
-  while (stack.length > 0) {
-    const { depth, combo } = stack.pop();
-    if (depth === arrays.length) {
-      result.push(combo);
-      continue;
+  const total = arrays.reduce((prod, a) => prod * a.length, 1);
+  const result = new Array(total);
+  const indices = new Int32Array(arrays.length);
+  const YIELD_EVERY = 500_000;
+
+  for (let i = 0; i < total; i++) {
+    // Build combo from current indices
+    const combo = new Array(arrays.length);
+    for (let j = 0; j < arrays.length; j++) combo[j] = arrays[j][indices[j]];
+    result[i] = combo;
+
+    // Increment odometer (rightmost index first)
+    for (let j = arrays.length - 1; j >= 0; j--) {
+      if (++indices[j] < arrays[j].length) break;
+      indices[j] = 0;
     }
-    const arr = arrays[depth];
-    for (let i = arr.length - 1; i >= 0; i--) {
-      stack.push({ depth: depth + 1, combo: [...combo, arr[i]] });
+
+    // Yield to browser periodically so the UI can repaint
+    if ((i + 1) % YIELD_EVERY === 0) {
+      if (onProgress) onProgress(i + 1, total);
+      await new Promise(r => setTimeout(r, 0));
     }
   }
+  if (onProgress) onProgress(total, total);
   return result;
 }
 
@@ -204,9 +215,15 @@ function mergeAggregates(a, b) {
  * @param {string} canton - canton code or ""
  * @param {function} onProgress - callback(completed, total)
  * @param {number} numWorkers - worker count
+ * @param {function} onPrepareProgress - callback(phase, done, total) for preparation steps
  * @returns {Promise<{agg: Object, base: Object, sweep: Object, total: number}>}
  */
-export async function runSweep(config, canton, onProgress, numWorkers) {
+export async function runSweep(config, canton, onProgress, numWorkers, onPrepareProgress) {
+  const notify = onPrepareProgress || (() => {});
+
+  // Phase 1: Apply canton profile & split config
+  notify("config", 0, 1);
+  await new Promise(r => setTimeout(r, 0));
   const merged = applyCantonProfile(config, canton);
   const { base, sweep } = splitConfig(merged);
 
@@ -216,6 +233,7 @@ export async function runSweep(config, canton, onProgress, numWorkers) {
   const sweepKeys = Object.keys(sweep);
   if (sweepKeys.length === 0) {
     // Single run — no sweep, run inline and wrap as aggregate
+    notify("combos", 0, 1);
     const { simulate, clampParams, validateParams, breakeven } = await import("./model.js");
     const p = {};
     for (const name of PARAM_FIELD_NAMES) {
@@ -234,12 +252,20 @@ export async function runSweep(config, canton, onProgress, numWorkers) {
     return { agg, base, sweep, total: 1 };
   }
 
+  // Phase 2: Build sweep grid
+  notify("grid", 0, 1);
+  await new Promise(r => setTimeout(r, 0));
   const { keys, valueLists } = buildSweepGrid(sweep);
-  const combos = cartesianProduct(valueLists);
-  const total = combos.length;
+  const total = valueLists.reduce((prod, v) => prod * v.length, 1);
+  notify("grid", 1, 1);
+
+  // Phase 3: Build cartesian product (potentially slow for large grids)
+  notify("combos", 0, total);
   const sweepIndices = keys.map((k) => PARAM_INDEX[k]);
   const baseValues = buildBaseValues(base, keys, valueLists);
+  const combos = await cartesianProduct(valueLists, (done, t) => notify("combos", done, t));
 
+  // Phase 4: Partition and launch workers
   numWorkers = numWorkers || Math.min(navigator.hardwareConcurrency || 4, total);
   const chunkSize = Math.max(1, Math.ceil(total / numWorkers));
 
@@ -247,6 +273,8 @@ export async function runSweep(config, canton, onProgress, numWorkers) {
   for (let i = 0; i < total; i += chunkSize) {
     chunks.push(combos.slice(i, i + chunkSize));
   }
+
+  notify("workers", 0, chunks.length);
 
   let completed = 0;
   const workerAggs = [];
